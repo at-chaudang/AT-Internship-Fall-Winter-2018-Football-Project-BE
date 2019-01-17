@@ -2,15 +2,15 @@ const tournamentService = require('../services/tournament.service');
 
 module.exports = {
   index: (req, res) => {
-    tournamentService.selectAll((err, callback) => {
+    tournamentService.selectAll(err => {
       if (err) throw err;
       res.json(callback);
     });
   },
   new: (req, res) => {
-    tournamentService.createTournament(req.body, (err, callback) => {
+    tournamentService.createTournament(req, (err, callback) => {
       if (err) throw err;
-      res.json(callback);
+      res.redirect('/schedules/new?data=' + JSON.stringify(callback));
     });
   },
   show: (req, res) => {

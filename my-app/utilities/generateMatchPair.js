@@ -1,6 +1,6 @@
 const randomDate = require('./randomDate');
 
-module.exports = function(_arr, mettings) {
+module.exports = function(groupName, _arr, mettings) {
   var _tArr = [];
   var _tArray = [];
   var _tDates = randomDate(new Date(2019, 0, 15));
@@ -8,14 +8,14 @@ module.exports = function(_arr, mettings) {
   if (mettings) {
     for (var i = 0; i < _arr.length; i++) {
       for (var j = i + 1; j < _arr.length; j++) {
-        _tArr.push([_arr[i], _arr[j], _tDates[i]]);
-        _tArr.push([_arr[j], _arr[i], _tDates[i++]]);
+        _tArr.push([groupName, _arr[i], _arr[j], _tDates[i]]);
+        _tArr.push([groupName, _arr[j], _arr[i], _tDates[i++]]);
       }
     }
   } else {
     for (var i = 0; i < _arr.length; i++) {
       for (var j = i + 1; j < _arr.length; j++) {
-        _tArr.push([_arr[i], _arr[j], _tDates[i]]);
+        _tArr.push([groupName, _arr[i], _arr[j], _tDates[i]]);
       }
     }
   }

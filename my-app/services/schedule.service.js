@@ -6,30 +6,34 @@ module.exports = {
     Schedule.find(callback);
   },
   createSchedule: (body, callback) => {
-    let tournamentId = body.tournamentId;
-    body.data.map(group => {
-      let groupName = group.name;
-      utilities.generateMatchPair(group.teams, false).map(pair => {
-        pair.map(item => {
-          let schedule = new Schedule({
-            tournament: tournamentId,
-            group: groupName,
-            firstTeam: item[0],
-            secondTeam: item[1],
-            matchDate: item[2]
-          });
-          schedule.save(callback);
+    let data = JSON.parse(body.data);
+    console.log(data);
+    let { tournamentId, schedules } = data;
+
+    schedules.map(pair => {
+      pair.map(item => {
+        let schedule = new Schedule({
+          tournament: tournamentId,
+          group: item[0],
+          firstTeam: item[1],
+          secondTeam: item[2],
+          matchDate: item[3]
+        });
+        schedule.save(err => {
+          if (err) throw err;
         });
       });
     });
+
+    callback(null, data);
   },
   getSchedule: (id, callback) => {
-    Schedule.find({_id: id}, callback);
+    Schedule.find({ _id: id }, callback);
   },
   updateSchedule: (id, body, callback) => {
     Schedule.findByIdAndUpdate(id, body, callback);
   },
   deleteSchedule: (id, callback) => {
-    Schedule.deleteOne({_id: id}, callback);
+    Schedule.deleteOne({ _id: id }, callback);
   }
 }

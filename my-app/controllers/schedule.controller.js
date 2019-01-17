@@ -8,7 +8,7 @@ module.exports = {
     });
   },
   new: (req, res) => {
-    scheduleService.createSchedule(req.body, (err, callback) => {
+    scheduleService.createSchedule(req.query, (err, callback) => {
       if (err) throw err;
       res.json(callback);
     });

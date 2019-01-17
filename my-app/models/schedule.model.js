@@ -2,16 +2,19 @@ const mongoose = require('mongoose');
 
 const scheduleSchema = mongoose.Schema({
   tournament: {
-    type: Number,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Tournament'
   },
   group: {
-    type: String,
+    type: String
   },
   firstTeam: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Team'
   },
   secondTeam: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Team'
   },
   matchDate: {
     type: Date
