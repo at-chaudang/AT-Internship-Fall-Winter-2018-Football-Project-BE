@@ -1,20 +1,20 @@
 const mongoose = require('mongoose');
 
 const scoreSchema = mongoose.Schema({
-  score_id: {
-    type: String,
-    required: false
+  match_id: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'Match'
   },
   tournament_team_id: {
     type: mongoose.Schema.ObjectId,
-    ref: 'TournamentTeam'
+    ref: 'Operator'
   },
   home: {
-    type: String,
+    type: Boolean,
     required: false
   },
   winner: {
-    type: String
+    type: Boolean
   },
   score: {
     type: String,

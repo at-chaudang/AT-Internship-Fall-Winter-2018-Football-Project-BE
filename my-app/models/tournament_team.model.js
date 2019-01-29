@@ -14,4 +14,4 @@ const tournamentTeamSchema = mongoose.Schema({
   }
 });
 
-module.exports = mongoose.model('TournamentTeam', tournamentTeamSchema);
+module.exports = mongoose.model('Operator', tournamentTeamSchema);

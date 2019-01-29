@@ -6,10 +6,10 @@ const matchSchema = mongoose.Schema({
     required: false
   },
   round: {
-    type: String,
+    type: Number,
     required: false
   },
-  tournament_id: {
+  tournamentId: {
     type: mongoose.Schema.ObjectId,
     ref: 'Tournament'
   },
