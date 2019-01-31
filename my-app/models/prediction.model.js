@@ -6,7 +6,8 @@ const predictionSchema = mongoose.Schema({
     ref: 'Match'
   },
   date: {
-    type: Date
+    type: Date,
+    required: false
   },
   user_id: {
     type: mongoose.Schema.ObjectId,

@@ -20,7 +20,14 @@ module.exports = {
       res.json(callback);
     })
   },
-  showByTournament: (req, res) => {
+  showAllByTournament: (req, res) => {
+    const tournamentId = req.params.tournamentId;
+    matchService.getAllByTournament(tournamentId, (err, callback) => {
+      if (err) throw err;
+      res.json(callback);
+    })
+  },
+  showBracketByTournament: (req, res) => {
     const tournamentId = req.params.tournamentId;
     matchService.getBracketByTournament(tournamentId, (err, callback) => {
       if (err) throw err;

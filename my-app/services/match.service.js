@@ -98,8 +98,8 @@ module.exports = {
   getMatch: (id, callback) => {
     Match.find({ _id: id }, callback);
   },
-  getBracketByTournament: (tournamentId, callback) => {
-    Match.find({ tournamentId: tournamentId, round: { $gt: 1 }})
+  getAllByTournament: (tournamentId, callback) => {
+    Match.find({ tournamentId: tournamentId })
       .then(
       matches => {
         let matchesIds = matches.map(match => match._id);
@@ -107,8 +107,43 @@ module.exports = {
           .populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id' } });
       })
       .then(
-        scores => {
-        console.log(scores.length);
+      scores => {
+        let result = [];
+        for (let i = 0; i < scores.length; i++) {
+          for (let j = i + 1; j < scores.length; j++) {
+            if (scores[i].match_id === scores[j].match_id) {
+              result.push({
+                id: scores[i].match_id._id,
+                round: scores[i].match_id.round,
+                group: scores[i].tournament_team_id ? scores[i].tournament_team_id.groupName : null,
+                start_at: scores[i].match_id.start_at,
+                firstTeam: {
+                  code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
+                  logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
+                  score: scores[i].score
+                },
+                secondTeam: {
+                  code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
+                  logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
+                  score: scores[j].score
+                }
+              });
+            }
+          }
+        }
+        callback(null, result);
+      })
+  },
+  getBracketByTournament: (tournamentId, callback) => {
+    Match.find({ tournamentId: tournamentId, round: { $gt: 1 } })
+      .then(
+      matches => {
+        let matchesIds = matches.map(match => match._id);
+        return Score.find({ match_id: { $in: matchesIds } })
+          .populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id' } });
+      })
+      .then(
+      scores => {
         let result = [];
         let winner = {};
 

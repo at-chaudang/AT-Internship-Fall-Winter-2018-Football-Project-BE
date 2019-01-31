@@ -1,4 +1,5 @@
 const User = require('../models/user.model');
+const bcrypt = require('bcryptjs');
 
 module.exports = {
   selectAllUser: (callback) => {
@@ -10,6 +11,9 @@ module.exports = {
   },
   getUser: (id, callback) => {
     User.find({_id: id}, callback);
+  },
+  comparePassword: (user, password) => {
+    return bcrypt.compareSync(password, user.hash_password);
   },
   updateUser: (id, body, callback) => {
     User.findByIdAndUpdate(id, body, callback);
