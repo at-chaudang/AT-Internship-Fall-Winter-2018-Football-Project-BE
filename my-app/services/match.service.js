@@ -16,8 +16,7 @@ module.exports = {
 		let startDate= new Date(tournament.start_at - 48*3600000).setHours(20,0,0,0);
 		groups.map(group => {
 			utilities.generateMatchPair(group.tournamentTeamIds, false).map(pair => {
-				new Date(startDate).getHours()===18 ? startDate += 7200000 : startDate+=46*3600000;
-				console.log(startDate)
+				new Date(startDate).getHours() === 18 ? startDate += 7200000 : startDate+= 46*3600000;
 				let match = new Match({
 					play_at: null,
 					round: 1,
@@ -48,7 +47,7 @@ module.exports = {
 		for (let j = 2; j <= 4; j++) {
 			knockouts /= 2;
 			for (let k = 1; k <= knockouts; k++) {
-				new Date(startDate).getHours()===13 ? startDate += 7200000 : startDate+=46*3600000;
+				new Date(startDate).getHours() === 18 ? startDate += 7200000 : startDate+= 46*3600000;
 				let match = new Match({
 					play_at: null,
 					round: +(j + "." + k),
@@ -74,7 +73,7 @@ module.exports = {
 			}
 		}
 
-		new Date(startDate).getHours()===13 ? startDate += 7200000 : startDate+=46*3600000;
+		new Date(startDate).getHours() === 18 ? startDate += 7200000 : startDate+= 46*3600000;
 		let match = new Match({
 			play_at: null,
 			round: 4.2,
@@ -114,42 +113,43 @@ module.exports = {
 			.then(
 				scores => {
 					let result = [];
-
-					for (let i = 0; i < scores.length; i++) {
-						for (let j = i + 1; j < scores.length; j++) {
+					let scoresLength = scores.length;
+					for (let i = 0, p = Promise.resolve(); i < scoresLength; i++) {
+						for (let j = i + 1; j < scoresLength; j++) {
 							if (scores[i].match_id._id === scores[j].match_id._id) {
-								Prediction.find({ match_id: scores[i].match_id._id }, (err, prediction) => {
-									if (err) throw err;
-									result.push({
-										id: scores[i].match_id._id,
-										round: scores[i].match_id.round,
-										group: scores[i].tournament_team_id ? scores[i].tournament_team_id.groupName : null,
-										start_at: scores[i].match_id.start_at,
-										firstTeam: {
-											firstTeamId: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id._id : '',
-											code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
-											logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
-											score: scores[i].score
-										},
-										secondTeam: {
-											secondTeamId: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id._id : '',
-											code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
-											logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
-											score: scores[j].score
-										},
-										prediction: {
-											is_predicted: prediction.length ? true : false,
-											firstTeam_score_prediction: prediction.length ? prediction[0].score_prediction : '',
-											secondTeam_score_prediction: prediction.length ? prediction[1].score_prediction : '',
+								p = p.then(_ => new Promise(resolve => {
+									Prediction.find({ match_id: scores[i].match_id._id }, (err, prediction) => {
+										if (err) throw err;
+										result.push({
+											id: scores[i].match_id._id,
+											round: scores[i].match_id.round,
+											group: scores[i].tournament_team_id ? scores[i].tournament_team_id.groupName : null,
+											start_at: scores[i].match_id.start_at,
+											firstTeam: {
+												firstTeamId: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id._id : '',
+												code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
+												logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
+												score: scores[i].score
+											},
+											secondTeam: {
+												secondTeamId: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id._id : '',
+												code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
+												logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
+												score: scores[j].score
+											},
+											prediction: {
+												is_predicted: prediction.length ? true : false,
+												firstTeam_score_prediction: prediction.length ? prediction[0].score_prediction : '',
+												secondTeam_score_prediction: prediction.length ? prediction[1].score_prediction : '',
+											}
+										});
+										resolve();
+										if (result.length == scoresLength / 2) {
+											callback(null, result);
 										}
-									});
-								});
+									})
+								}))
 							}
-						}
-						if (i == scores.length - 1) {
-							setTimeout(() => {
-								callback(null, result);
-							}, 5000);
 						}
 					}
 				})
@@ -227,7 +227,7 @@ module.exports = {
 		callback(null, 200);
 	},
 	getNextMatch: (callback) => {
-		Match.findgit (
+		Match.find(
 			{
 				start_at: { $gt: Date.now() }
 			}
