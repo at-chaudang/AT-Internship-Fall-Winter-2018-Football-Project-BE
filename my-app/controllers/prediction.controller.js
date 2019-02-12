@@ -8,16 +8,10 @@ module.exports = {
     });
   },
   new: (req, res) => {
-    console.log(req.body)
-    try{
     predictionService.createPrediction(req.body, (err, callback) => {
       if (err) throw err;
       res.json(callback);
     });
-    } catch (err) {
-      console.log(err);
-    }
-    
   },
   show: (req, res) => {
     const id = req.params.id;

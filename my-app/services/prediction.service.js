@@ -5,13 +5,12 @@ module.exports = {
     Prediction.find(callback); 
   },
   createPrediction: (body, callback) => {
-    try{
+    try {
       const prediction = new Prediction(body);
       prediction.save(callback);
     } catch (err) {
       console.log(err);
     }
-    
   },
   getPrediction: (id, callback) => {
     Prediction.find({_id: id}, callback);

@@ -8,7 +8,7 @@ const utilities = require('../utilities/index');
 
 module.exports = {
   selectAll: (callback) => {
-    Tournament.find(callback);
+    Tournament.find({}, callback);
   },
   createTournament: (req, callback) => {
     let { tournament, teams } = req.body;

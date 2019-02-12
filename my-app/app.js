@@ -9,7 +9,7 @@ var indexRouter = require('./routes/index');
 
 // Set up mongoose connection
 var mongoDB = config.database;
-mongoose.connect(mongoDB);
+mongoose.connect(mongoDB, { useNewUrlParser: true });
 mongoose.Promise = global.Promise;
 var db = mongoose.connection;
 db.on('error', console.log.bind(console, 'MongoDB connection error:'));
