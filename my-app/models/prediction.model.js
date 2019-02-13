@@ -18,8 +18,8 @@ const predictionSchema = mongoose.Schema({
     required: false
   },
   tournament_team_id: {
-    type: String,
-    require: false
+    type: mongoose.Schema.ObjectId,
+    ref: 'Operator'
   }
 }, {strict: false});
 

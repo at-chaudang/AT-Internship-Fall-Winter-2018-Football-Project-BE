@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const predictioneCtrl = require('../controllers/prediction.controller');
+const predictionCtrl = require('../controllers/prediction.controller');
 
-router.get('/', predictioneCtrl.index);
-router.post('/new', predictioneCtrl.new);
-router.get('/:id', predictioneCtrl.show);
-router.get('/match/:id', predictioneCtrl.showByIdMatch);
-router.patch('/:id', predictioneCtrl.update);
-router.delete('/:id', predictioneCtrl.delete);
+router.get('/', predictionCtrl.index);
+router.post('/new', predictionCtrl.new);
+router.get('/:id', predictionCtrl.show);
+router.get('/match/:id', predictionCtrl.showByIdMatch);
+router.patch('/:id', predictionCtrl.update);
+router.delete('/:id', predictionCtrl.delete);
 
 module.exports = router;
