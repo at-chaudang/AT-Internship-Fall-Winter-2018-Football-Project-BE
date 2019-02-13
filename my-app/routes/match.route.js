@@ -8,7 +8,7 @@ router.get('/create', matchCtrl.new);
 router.get('/:id', matchCtrl.show);
 router.get('/show/:tournamentId', matchCtrl.showAllByTournament);
 router.get('/tournament/:tournamentId', matchCtrl.showBracketByTournament);
-router.patch('/:id', matchCtrl.update);
+router.post('/update', matchCtrl.update);
 router.delete('/:id', matchCtrl.delete);
 
 module.exports = router;

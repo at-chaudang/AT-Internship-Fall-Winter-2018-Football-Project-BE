@@ -192,8 +192,17 @@ module.exports = {
 				}
 			)
 	},
-	updateMatch: (id, body, callback) => {
-		Match.findByIdAndUpdate(id, body, callback);
+	updateMatch: (body, callback) => {
+		Score.find({ match_id: body.match_id }, (err, callback) => {
+			if (err) throw err;
+			callback.map((score, index) => {
+				score.score = body.scorePrediction[index];
+				score.save(err => { 
+					if (err) throw err;
+				});
+			});
+		});
+		callback(null, 200);
 	},
 	deleteMatch: (id, callback) => {
 		Match.deleteOne({ _id: id }, callback);
