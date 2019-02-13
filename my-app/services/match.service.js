@@ -132,7 +132,11 @@ module.exports = {
 											logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
 											score: scores[j].score
 										},
-										is_predicted: prediction.length ? true : false
+										prediction: {
+											is_predicted: prediction.length ? true : false,
+											firstTeam_score_prediction: prediction.length ? prediction[0].score_prediction : '',
+											secondTeam_score_prediction: prediction.length ? prediction[1].score_prediction : '',
+										}
 									});
 								});
 							}
@@ -140,7 +144,7 @@ module.exports = {
 						if (i == scores.length - 1) {
 							setTimeout(() => {
 								callback(null, result);
-							}, 4000);
+							}, 5000);
 						}
 					}
 				})
@@ -176,12 +180,6 @@ module.exports = {
 								});
 							}
 						}
-						// if (scores[i].match_id.round === 4.1 && scores[i].winner) {
-						// 	winner = {
-						// 		code: scores[i].tournament_team_id.team_id.code || null,
-						// 		logo: `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` || null
-						// 	};
-						// }
 					}
 					Tournament.find({ _id: tournamentId }, (err, tournament) => {
 						if (err) throw err;
