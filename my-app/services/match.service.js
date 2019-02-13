@@ -101,95 +101,97 @@ module.exports = {
 	getAllByTournament: (tournamentId, callback) => {
 		Match.find({ tournamentId: tournamentId })
 			.then(
-			matches => {
-				let matchesIds = matches.map(match => match._id);
-				return Score.find({ match_id: { $in: matchesIds } })
-					.populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id' } });
-			})
+				matches => {
+					let matchesIds = matches.map(match => match._id);
+					return Score.find({ match_id: { $in: matchesIds } })
+						.populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id' } });
+				})
 			.then(
-			scores => {
-				let result = [];
+				scores => {
+					let result = [];
 
-				for (let i = 0; i < scores.length; i++) {
-					for (let j = i + 1; j < scores.length; j++) {
-						if (scores[i].match_id._id === scores[j].match_id._id) {
-							let is_predicted;
-							Prediction.find({ match_id: '5c4fbbaa0b614f0a24019269' }).exec((err, callback) => { 
-								if (err) throw err;
-								is_predicted = callback ? true : false;
-							});
-							result.push({
-								id: scores[i].match_id._id,
-								round: scores[i].match_id.round,
-								group: scores[i].tournament_team_id ? scores[i].tournament_team_id.groupName : null,
-								start_at: scores[i].match_id.start_at,
-								firstTeam: {
-									firstTeamId: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id._id : '',
-									code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
-									logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
-									score: scores[i].score
-								},
-								secondTeam: {
-									secondTeamId: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id._id : '',
-									code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
-									logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
-									score: scores[j].score
-								},
-								is_predicted: is_predicted
-							});
+					for (let i = 0; i < scores.length; i++) {
+						for (let j = i + 1; j < scores.length; j++) {
+							if (scores[i].match_id._id === scores[j].match_id._id) {
+								Prediction.find({ match_id: scores[i].match_id._id }, (err, prediction) => {
+									if (err) throw err;
+									result.push({
+										id: scores[i].match_id._id,
+										round: scores[i].match_id.round,
+										group: scores[i].tournament_team_id ? scores[i].tournament_team_id.groupName : null,
+										start_at: scores[i].match_id.start_at,
+										firstTeam: {
+											firstTeamId: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id._id : '',
+											code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
+											logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
+											score: scores[i].score
+										},
+										secondTeam: {
+											secondTeamId: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id._id : '',
+											code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
+											logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
+											score: scores[j].score
+										},
+										is_predicted: prediction.length ? true : false
+									});
+								});
+							}
+						}
+						if (i == scores.length - 1) {
+							setTimeout(() => {
+								callback(null, result);
+							}, 4000);
 						}
 					}
-				}
-				callback(null, result);
-			})
+				})
 	},
 	getBracketByTournament: (tournamentId, callback) => {
 		Match.find({ tournamentId: tournamentId, round: { $gt: 1 } })
 			.then(
-			matches => {
-				let matchesIds = matches.map(match => match._id);
-				return Score.find({ match_id: { $in: matchesIds } })
-					.populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id' } });
-			})
+				matches => {
+					let matchesIds = matches.map(match => match._id);
+					return Score.find({ match_id: { $in: matchesIds } })
+						.populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id' } });
+				})
 			.then(
-			scores => {
-				let result = [];
-				let winner = {};
+				scores => {
+					let result = [];
+					let winner = {};
 
-				for (let i = 0; i < scores.length; i++) {
-					for (let j = i + 1; j < scores.length; j++) {
-						if (scores[i].match_id === scores[j].match_id) {
-							result.push({
-								round: scores[i].match_id.round,
-								firstTeam: {
-									code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
-									logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
-									score: scores[i].score
-								},
-								secondTeam: {
-									code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
-									logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
-									score: scores[j].score
-								}
-							});
+					for (let i = 0; i < scores.length; i++) {
+						for (let j = i + 1; j < scores.length; j++) {
+							if (scores[i].match_id === scores[j].match_id) {
+								result.push({
+									round: scores[i].match_id.round,
+									firstTeam: {
+										code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
+										logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
+										score: scores[i].score
+									},
+									secondTeam: {
+										code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
+										logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
+										score: scores[j].score
+									}
+								});
+							}
 						}
+						// if (scores[i].match_id.round === 4.1 && scores[i].winner) {
+						// 	winner = {
+						// 		code: scores[i].tournament_team_id.team_id.code || null,
+						// 		logo: `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` || null
+						// 	};
+						// }
 					}
-					// if (scores[i].match_id.round === 4.1 && scores[i].winner) {
-					// 	winner = {
-					// 		code: scores[i].tournament_team_id.team_id.code || null,
-					// 		logo: `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` || null
-					// 	};
-					// }
-				}
-				Tournament.find({ _id: tournamentId }, (err, tournament) => {
-					if (err) throw err;
-					callback(null, {
-						tournamentName: tournament.name,
-						matches: result,
-						winner: winner
+					Tournament.find({ _id: tournamentId }, (err, tournament) => {
+						if (err) throw err;
+						callback(null, {
+							tournamentName: tournament.name,
+							matches: result,
+							winner: winner
+						});
 					});
-				});
-			}
+				}
 			)
 	},
 	updateMatch: (id, body, callback) => {
