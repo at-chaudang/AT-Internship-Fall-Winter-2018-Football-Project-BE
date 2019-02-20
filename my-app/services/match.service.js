@@ -161,23 +161,40 @@ module.exports = {
 				scores => {
 					let result = [];
 					let winner = {};
+					let ptk = pbk = pck = position = 0;
 
 					for (let i = 0; i < scores.length; i++) {
 						for (let j = i + 1; j < scores.length; j++) {
 							if (scores[i].match_id === scores[j].match_id) {
+								let label;
+
+								if (scores[i].match_id.round <= 3) {
+									label = 'tk';
+									position = ++ptk;
+									++ptk;
+								} else if (scores[i].match_id.round <= 4) {
+									label = 'bk';
+									position = ++pbk;
+									++pbk;
+								} else {
+									label = 'ck';
+									position = ++pck;
+									++pck;
+								}
+
 								result.push({
-									round: scores[i].match_id.round,
-									firstTeam: {
-										code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
-										logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
-										score: scores[i].score
-									},
-									secondTeam: {
+									label,
+									position: position,
+									code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
+									logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
+									score: scores[i].score
+								}, {
+										label,
+										position: ++position,
 										code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
 										logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
 										score: scores[j].score
-									}
-								});
+									});
 							}
 						}
 					}
@@ -233,8 +250,17 @@ module.exports = {
 			)
 			;
 	},
-	updateMatch: (id, body, callback) => {
-		Match.findByIdAndUpdate(id, body, callback);
+	updateMatch: (body, callback) => {
+		Score.find({ match_id: body.match_id }, (err, callback) => {
+			if (err) throw err;
+			callback.map((score, index) => {
+				score.score = body.scorePrediction[index];
+				score.save(err => {
+					if (err) throw err;
+				});
+			});
+		});
+		callback(null, 200);
 	},
 	deleteMatch: (id, callback) => {
 		Match.deleteOne({ _id: id }, callback);

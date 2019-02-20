@@ -41,8 +41,7 @@ module.exports = {
     })
   },
   update: (req, res) => {
-    const id = req.params.id;
-    matchService.updateMatch(id, req.body, (err, callback) => {
+    matchService.updateMatch(req.body, (err, callback) => {
       if (err) throw err;
       res.json(callback);
     })
