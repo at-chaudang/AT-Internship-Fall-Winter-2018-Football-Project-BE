@@ -34,6 +34,12 @@ module.exports = {
       res.json(callback);
     })
   },
+  showNextMatch: (req, res) => {
+    matchService.getNextMatch((err, callback) => {
+      if (err) throw err;
+      res.json(callback);
+    })
+  },
   update: (req, res) => {
     const id = req.params.id;
     matchService.updateMatch(id, req.body, (err, callback) => {
