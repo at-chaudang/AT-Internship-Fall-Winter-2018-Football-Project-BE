@@ -10,7 +10,7 @@ module.exports = {
   new: (req, res) => {
     matchService.createMatch(req.query, (err, callback) => {
       if (err) throw err;
-      res.json(200);
+      res.json(callback);
     });
   },
   show: (req, res) => {

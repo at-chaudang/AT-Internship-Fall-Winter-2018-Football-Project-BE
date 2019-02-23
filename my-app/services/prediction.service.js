@@ -13,8 +13,11 @@ module.exports = {
         score_prediction: body.scorePrediction[i],
         tournament_team_id: body.tournament_team_id[i]
       });
-      prediction.save(callback);
+      prediction.save(error => {
+        if (error) throw err;
+      });
     }
+    callback(null, 200);
   },
   getPrediction: (id, callback) => {
     Prediction.find({ _id: id }, callback);
