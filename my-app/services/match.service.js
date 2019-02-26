@@ -133,13 +133,13 @@ module.exports = {
 											firstTeam: {
 												firstTeamId: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id._id : '',
 												code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
-												logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
+												logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
 												score: scores[i].score
 											},
 											secondTeam: {
 												secondTeamId: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id._id : '',
 												code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
-												logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
+												logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
 												score: scores[j].score
 											},
 											prediction: {
@@ -196,13 +196,13 @@ module.exports = {
 									label,
 									position: position,
 									code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
-									logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
+									logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
 									score: scores[i].score
 								}, {
 										label,
 										position: ++position,
 										code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
-										logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
+										logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
 										score: scores[j].score
 									});
 							}
