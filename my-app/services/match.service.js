@@ -10,17 +10,20 @@ module.exports = {
 	selectAll: (callback) => {
 		Match.find(callback);
 	},
-	createMatch: (body, callback) => {
+	createMatch: async (body, callback) => {
 		let { tournamentId, groups } = JSON.parse(body.data);
-
+		let tournament = await Tournament.findOne({'_id': tournamentId})
+		let startDate= new Date(tournament.start_at - 48*3600000).setHours(20,0,0,0);
 		groups.map(group => {
 			utilities.generateMatchPair(group.tournamentTeamIds, false).map(pair => {
+				new Date(startDate).getHours()===18 ? startDate += 7200000 : startDate+=46*3600000;
+				console.log(startDate)
 				let match = new Match({
 					play_at: null,
 					round: 1,
 					tournamentId: mongoose.Types.ObjectId(tournamentId),
 					desc: null,
-					start_at: null
+					start_at: startDate
 				});
 				match.save((error) => {
 					if (error) { throw error };
@@ -45,12 +48,13 @@ module.exports = {
 		for (let j = 2; j <= 4; j++) {
 			knockouts /= 2;
 			for (let k = 1; k <= knockouts; k++) {
+				new Date(startDate).getHours()===13 ? startDate += 7200000 : startDate+=46*3600000;
 				let match = new Match({
 					play_at: null,
 					round: +(j + "." + k),
 					tournamentId: mongoose.Types.ObjectId(tournamentId),
 					desc: null,
-					start_at: null
+					start_at: startDate
 				});
 				match.save((error) => {
 					if (error) { throw error };
@@ -70,12 +74,13 @@ module.exports = {
 			}
 		}
 
+		new Date(startDate).getHours()===13 ? startDate += 7200000 : startDate+=46*3600000;
 		let match = new Match({
 			play_at: null,
 			round: 4.2,
 			tournamentId: mongoose.Types.ObjectId(tournamentId),
 			desc: null,
-			start_at: null
+			start_at: startDate
 		});
 		match.save((error) => {
 			if (error) { throw error };
@@ -209,8 +214,20 @@ module.exports = {
 				}
 			)
 	},
+	updateMatch: (body, callback) => {
+		Score.find({ match_id: body.match_id }, (err, callback) => {
+			if (err) throw err;
+			callback.map((score, index) => {
+				score.score = body.scorePrediction[index];
+				score.save(err => {
+					if (err) throw err;
+				});
+			});
+		});
+		callback(null, 200);
+	},
 	getNextMatch: (callback) => {
-		Match.find(
+		Match.findgit (
 			{
 				start_at: { $gt: Date.now() }
 			}
@@ -249,18 +266,6 @@ module.exports = {
 				}
 			)
 			;
-	},
-	updateMatch: (body, callback) => {
-		Score.find({ match_id: body.match_id }, (err, callback) => {
-			if (err) throw err;
-			callback.map((score, index) => {
-				score.score = body.scorePrediction[index];
-				score.save(err => {
-					if (err) throw err;
-				});
-			});
-		});
-		callback(null, 200);
 	},
 	deleteMatch: (id, callback) => {
 		Match.deleteOne({ _id: id }, callback);
