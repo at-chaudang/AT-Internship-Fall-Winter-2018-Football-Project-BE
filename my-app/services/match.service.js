@@ -100,7 +100,12 @@ module.exports = {
 		callback(null, tournamentId);
 	},
 	getMatch: (id, callback) => {
-		Match.find({ _id: id }, callback);
+		Score.find({ match_id: id }).populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id' } })
+			.then(
+				scores => {
+					callback(null, scores);
+				}
+			)
 	},
 	getAllByTournament: (tournamentId, callback) => {
 		Match.find({ tournamentId: tournamentId })
