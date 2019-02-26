@@ -5,19 +5,19 @@ module.exports = {
     Prediction.find(callback);
   },
   createPrediction: (body, callback) => {
+    let promises = [];
     for (let i = 0; i < 2; i++) {
-      let prediction = new Prediction({
+      promises.push(new Prediction({
         match_id: body.match_id,
         date: body.date,
         user_id: body.user_id,
         score_prediction: body.scorePrediction[i],
         tournament_team_id: body.tournament_team_id[i]
-      });
-      prediction.save(error => {
+      }).save(error => {
         if (error) throw err;
-      });
+      }));
     }
-    callback(null, 200);
+    Promise.all(promises).then(_ => callback(null, 200));
   },
   getPrediction: (id, callback) => {
     Prediction.find({ _id: id }, callback);
