@@ -119,10 +119,9 @@ module.exports = {
 				scores => {
 					let result = [];
 					let scoresLength = scores.length;
-					for (let i = 0, p = Promise.resolve(); i < scoresLength; i++) {
+					for (let i = 0; i < scoresLength; i++) {
 						for (let j = i + 1; j < scoresLength; j++) {
 							if (scores[i].match_id._id === scores[j].match_id._id) {
-								p = p.then(_ => new Promise(resolve => {
 									Prediction.find({ match_id: scores[i].match_id._id }, (err, prediction) => {
 										if (err) throw err;
 										result.push({
@@ -148,12 +147,10 @@ module.exports = {
 												secondTeam_score_prediction: prediction.length ? prediction[1].score_prediction : '',
 											}
 										});
-										resolve();
 										if (result.length == scoresLength / 2) {
 											callback(null, result);
 										}
 									})
-								}))
 							}
 						}
 					}
@@ -237,11 +234,13 @@ module.exports = {
 				start_at: { $gt: Date.now() }
 			}
 		)
-			.limit(7)
+		.limit(7)
 			.then(
 				matches => {
 					let matchesIds = matches.map(match => match._id);
-					return Score.find({ match_id: { $in: matchesIds } })
+					return Score.find({ 
+						match_id: { $in: matchesIds }
+					})
 						.populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id' } });
 				})
 			.then(

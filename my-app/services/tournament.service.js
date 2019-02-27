@@ -16,7 +16,6 @@ module.exports = {
     let groupNames = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
     let tournamentId;
     let teamIds = [];
-    let tournamentTeamIds = [];
     let groups = [];
     let j = 0;
 
