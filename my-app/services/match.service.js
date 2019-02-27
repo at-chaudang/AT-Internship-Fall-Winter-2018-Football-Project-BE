@@ -229,7 +229,7 @@ module.exports = {
 		callback(null, 200);
 	},
 	getNextMatch: (callback) => {
-		Match.find(
+		Match.find (
 			{
 				start_at: { $gt: Date.now() }
 			}
@@ -266,6 +266,7 @@ module.exports = {
 							}
 						}
 					}
+					result = result.filter(match => match.firstTeam.code);
 					callback(null, result);
 				}
 			)
