@@ -26,17 +26,20 @@ module.exports = {
 				});
 				match.save((error) => {
 					if (error) { throw error };
-					for (j = 0; j < 2; j++) {
-						let score = new Score({
-							match_id: match._id,
-							tournament_team_id: pair[j],
-							home: !j,
-							winner: null,
-							score: null
-						});
-						score.save(err => {
-							if (err) throw err;
-						});
+					for (j = 0, p = Promise.resolve(); j < 2; j++) {
+						p = p.then(_ => new Promise(resolve => {
+							let score = new Score({
+								match_id: match._id,
+								tournament_team_id: pair[j],
+								home: !j,
+								winner: null,
+								score: null
+							});
+							resolve();
+							score.save(err => {
+								if (err) throw err;
+							});
+						}))
 					}
 				});
 			});
@@ -136,7 +139,7 @@ module.exports = {
 												score: scores[i].score
 											},
 											secondTeam: {
-												secondTeamId: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id._id : '',
+												secondTeamId: scores[i].tournament_team_id ? scores[j].tournament_team_id.team_id._id : '',
 												code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
 												logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
 												score: scores[j].score

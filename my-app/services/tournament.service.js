@@ -1,5 +1,3 @@
-const mongoose = require('mongoose');
-
 const Tournament = require('../models/tournament.model');
 const Team = require('../models/team.model');
 const Operator = require('../models/tournament_team.model');
