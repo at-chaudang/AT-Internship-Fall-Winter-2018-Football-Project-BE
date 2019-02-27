@@ -12,11 +12,11 @@ module.exports = {
 	},
 	createMatch: async (body, callback) => {
 		let { tournamentId, groups } = JSON.parse(body.data);
-		let tournament = await Tournament.findOne({'_id': tournamentId})
-		let startDate= new Date(tournament.start_at - 48*3600000).setHours(20,0,0,0);
+		let tournament = await Tournament.findOne({ '_id': tournamentId })
+		let startDate = new Date(tournament.start_at - 48 * 3600000).setHours(20, 0, 0, 0);
 		groups.map(group => {
 			utilities.generateMatchPair(group.tournamentTeamIds, false).map(pair => {
-				new Date(startDate).getHours() === 18 ? startDate += 7200000 : startDate+= 46*3600000;
+				new Date(startDate).getHours() === 18 ? startDate += 7200000 : startDate += 46 * 3600000;
 				let match = new Match({
 					play_at: null,
 					round: 1,
@@ -26,20 +26,17 @@ module.exports = {
 				});
 				match.save((error) => {
 					if (error) { throw error };
-					for (j = 0, p = Promise.resolve(); j < 2; j++) {
-						p = p.then(_ => new Promise(resolve => {
-							let score = new Score({
-								match_id: match._id,
-								tournament_team_id: pair[j],
-								home: !j,
-								winner: null,
-								score: null
-							});
-							resolve();
-							score.save(err => {
-								if (err) throw err;
-							});
-						}))
+					for (j = 0; j < 2; j++) {
+						let score = new Score({
+							match_id: match._id,
+							tournament_team_id: pair[j],
+							home: !j,
+							winner: null,
+							score: null
+						});
+						score.save(err => {
+							if (err) throw err;
+						});
 					}
 				});
 			});
@@ -50,7 +47,7 @@ module.exports = {
 		for (let j = 2; j <= 4; j++) {
 			knockouts /= 2;
 			for (let k = 1; k <= knockouts; k++) {
-				new Date(startDate).getHours() === 18 ? startDate += 7200000 : startDate+= 46*3600000;
+				new Date(startDate).getHours() === 18 ? startDate += 7200000 : startDate += 46 * 3600000;
 				let match = new Match({
 					play_at: null,
 					round: +(j + "." + k),
@@ -76,7 +73,7 @@ module.exports = {
 			}
 		}
 
-		new Date(startDate).getHours() === 18 ? startDate += 7200000 : startDate+= 46*3600000;
+		new Date(startDate).getHours() === 18 ? startDate += 7200000 : startDate += 46 * 3600000;
 		let match = new Match({
 			play_at: null,
 			round: 4.2,
@@ -97,10 +94,12 @@ module.exports = {
 				score.save(err => {
 					if (err) throw err;
 				});
+
+				if (j === 2) {
+					callback(null, tournamentId);
+				}
 			}
 		});
-
-		callback(null, tournamentId);
 	},
 	getMatch: (id, callback) => {
 		Score.find({ match_id: id }).populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id' } })
@@ -139,7 +138,7 @@ module.exports = {
 												score: scores[i].score
 											},
 											secondTeam: {
-												secondTeamId: scores[i].tournament_team_id ? scores[j].tournament_team_id.team_id._id : '',
+												secondTeamId: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id._id : '',
 												code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
 												logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
 												score: scores[j].score
@@ -232,16 +231,16 @@ module.exports = {
 		callback(null, 200);
 	},
 	getNextMatch: (callback) => {
-		Match.find (
+		Match.find(
 			{
 				start_at: { $gt: Date.now() }
 			}
 		)
-		.limit(7)
+			.limit(7)
 			.then(
 				matches => {
 					let matchesIds = matches.map(match => match._id);
-					return Score.find({ 
+					return Score.find({
 						match_id: { $in: matchesIds }
 					})
 						.populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id' } });
