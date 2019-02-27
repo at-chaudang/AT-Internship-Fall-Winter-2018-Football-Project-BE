@@ -16,7 +16,7 @@ module.exports = {
   show: (req, res) => {
     const id = req.params.id;    
     matchService.getMatch(id, (err, callback) => {
-      if (err) throw err;
+      if (err) res.json(404);
       res.json(callback);
     })
   },
