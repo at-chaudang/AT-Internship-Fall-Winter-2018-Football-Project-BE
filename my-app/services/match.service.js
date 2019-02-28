@@ -253,6 +253,7 @@ module.exports = {
 						for (let j = i + 1; j < scores.length; j++) {
 							if (scores[i].match_id === scores[j].match_id) {
 								result.push({
+									id: scores[i].match_id._id,
 									round: scores[i].match_id.round,
 									firstTeam: {
 										code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
