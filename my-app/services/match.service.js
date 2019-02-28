@@ -119,6 +119,46 @@ module.exports = {
 				})
 			.then(
 				scores => {
+					// let scoresTables = scores
+					// 	.filter(score => score.match_id.round === 1)
+					// 	.sort((a, b) => {
+					// 		return a.tournament_team_id.groupName > b.tournament_team_id.groupName ? 1 : -1;
+					// 	});
+					
+					// let groupScores = [];
+					// for (let i = 0; i < scoresTables.length - 1; i++) {
+					// 	let eachGroupScores = []
+					// 	for (let j = i; j < i + 12; j++) {
+					// 		eachGroupScores.push(scoresTables[j]);
+					// 	}
+					// 	groupScores.push(eachGroupScores);
+					// 	i+= 11;
+					// }
+					
+					// let groupScore = [];
+					// groupScores.map(group => {
+					// 	let unSetKnockOut = group.filter(score => {
+					// 		return score.score === null
+					// 	})
+					// 	if (!unSetKnockOut.length) {
+					// 		group.sort((a, b) => {
+					// 			return a.tournament_team_id > b.tournament_team_id ? 1 : -1;
+					// 		});
+
+					// 		// i === teams length and j === scores(3)
+					// 		for (let i = 0; i < 4; i++) {
+					// 			let scoreTemp = 0;
+					// 			for (let j = i * 3; j < i * 3 + 3; j++) {
+					// 				scoreTemp += +group[j].score;
+					// 			}
+					// 			// if ()
+					// 			st1 = scoreTemp;
+					// 			groupScore.push(scoreTemp);
+					// 		}
+					// 	}
+					// })
+					
+
 					let result = [];
 					let scoresLength = scores.length;
 					for (let i = 0; i < scoresLength; i++) {
@@ -219,10 +259,11 @@ module.exports = {
 			)
 	},
 	updateMatch: (body, callback) => {
-		Score.find({ match_id: body.match_id }, (err, callback) => {
+		Score.find({ match_id: body.match_id }, (err, scores) => {
 			if (err) throw err;
-			callback.map((score, index) => {
+			scores.map((score, index) => {
 				score.score = body.scorePrediction[index];
+				// score.winner = body.winners[index];
 				score.save(err => {
 					if (err) throw err;
 				});
