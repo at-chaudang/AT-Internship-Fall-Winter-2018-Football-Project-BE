@@ -109,6 +109,24 @@ module.exports = {
 				}
 			)
 	},
+	updateKnockoutMatches: (tournamentId, callback) => {
+		Match.find({ tournamentId: tournamentId })
+			.then(
+				matches => {
+					let matchesIds = matches.map(match => match._id);
+					return Score.find({ match_id: { $in: matchesIds } })
+						.populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id' } });
+				})
+			.then(scores => {
+				let scoresOfAllTables = scores
+					.filter(score => score.match_id.round === 1)
+					.sort((a, b) => {
+						return a.tournament_team_id.groupName > b.tournament_team_id.groupName ? 1 : -1;
+					});
+				let scoresByGroupName = utilities.arrangeByGroup(scoresOfAllTables);
+				utilities.setMatchesResult(tournamentId, scoresByGroupName, true)
+			})
+	},
 	getAllByTournament: (tournamentId, callback) => {
 		Match.find({ tournamentId: tournamentId })
 			.then(
@@ -121,40 +139,14 @@ module.exports = {
 				scores => {
 					let result = [];
 					let scoresLength = scores.length
-
-					// Sắp xếp theo từng trận tứ kết.
-					// let scoresByQuaterFinal = scores.filter(score => (score.match_id.round > 1 && score.match_id.round < 3))
-					// .sort((a, b) => {
-					// 	return a.match_id.round > b.match_id.round ? 1 : -1;
-					// });
-
-					// let scoresCuaToanBoVongTuKetTheoNhom = [];
-					// for (let i = 0; i < scoresByQuaterFinal.length - 1; i++) {
-					// 	let scoresCuaMoiTranTuKet = [];
-					// 	for (let j = i; j + 3; j++) {
-					// 		scoresCuaMoiTranTuKet.push(scoresByQuaterFinal[j]);
-					// 	}
-					// 	scoresCuaToanBoVongTuKetTheoNhom.push(scoresCuaMoiTranTuKet);
-					// 	i+= 2;
-					// }
-
-					// Sắp xếp theo tên bảng.
-					// let scoresCuaToanBoVongBang = scores
-					// 	.filter(score => score.match_id.round === 1)
-					// 	.sort((a, b) => {
-					// 		return a.tournament_team_id.groupName > b.tournament_team_id.groupName ? 1 : -1;
-					// 	});
 					
-					// // Chia nhóm theo bên bảng.
-					// let scoresCuaToanBoBangTheoNhom = [];
-					// for (let i = 0; i < scoresCuaToanBoVongBang.length - 1; i++) {
-					// 	let scoresCuaMoiBang = []
-					// 	for (let j = i; j < i + 12; j++) {
-					// 		scoresCuaMoiBang.push(scoresCuaToanBoVongBang[j]);
-					// 	}
-					// 	scoresCuaToanBoBangTheoNhom.push(scoresCuaMoiBang);
-					// 	i += 11;
-					// }
+					let scoresOfAllTables = scores
+						.filter(score => score.match_id.round === 1)
+						.sort((a, b) => {
+							return a.tournament_team_id.groupName > b.tournament_team_id.groupName ? 1 : -1;
+						});
+					let scoresByGroupName = utilities.arrangeByGroup(scoresOfAllTables);
+					
 					for (let i = 0; i < scoresLength; i++) {
 						for (let j = i + 1; j < scoresLength; j++) {
 							if (scores[i].match_id._id === scores[j].match_id._id) {
@@ -166,16 +158,16 @@ module.exports = {
 										group: scores[i].tournament_team_id ? scores[i].tournament_team_id.groupName : null,
 										start_at: scores[i].match_id.start_at,
 										firstTeam: {
-											firstTeamId: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id._id : '',
 											code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
 											logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
-											score: scores[i].score
+											score: scores[i].score,
+											winner: scores[i].winner
 										},
 										secondTeam: {
-											secondTeamId: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id._id : '',
 											code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
 											logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
-											score: scores[j].score
+											score: scores[j].score,
+											winner: scores[j].winner
 										},
 										prediction: {
 											isAllow: (new Date(scores[i].match_id.start_at).getTime() < Date.now()) ? true : false,
@@ -185,66 +177,7 @@ module.exports = {
 										}
 									});
 									if (result.length === scoresLength / 2) {
-										// Lặp từng mỗi nhóm bảng.
-										// scoresCuaToanBoBangTheoNhom.map((_scoresCuaMoiBang, _indexscoresCuaMoiBang) => {
-										// 	// Tìm xem trong mỗi bảng có trận mô chưa set ko.
-										// 	let unSetKnockOut = _scoresCuaMoiBang.filter(score => {
-										// 		return score.score === null
-										// 	})
-										// 	if (!unSetKnockOut.length) {
-										// 		let thongTinCacDoi = [];
-
-										// 		// Sắp 12 scores lại theo từng đội, cứ 3 scores đầu là cho 1 đội.
-										// 		_scoresCuaMoiBang.sort((a, b) => {
-										// 			return a.tournament_team_id > b.tournament_team_id ? 1 : -1;
-										// 		});
-
-										// 		// Tiếp tục chia scores ra thành 4 nhóm theo mỗi đội để lấy tỉ số và độ ưu tiên thằng thua
-										// 	// mối nhóm 3 scores cho mỗi đội.
-										// 		// i === teams length and j === scores(3)
-										// 		for (let i = 0; i < 4; i++) {
-										// 			let tongBanThang = winner = 0;
-										// 			for (let j = i * 3; j < i * 3 + 3; j++) {
-										// 				tongBanThang += +_scoresCuaMoiBang[j].score;
-										// 				winner += +_scoresCuaMoiBang[j].winner;
-										// 			}
-										// 			thongTinCacDoi.push({
-										// 				team: _scoresCuaMoiBang[i * 3],
-										// 				score: tongBanThang,
-										// 				winner: winner
-										// 			});
-										// 		}
-
-										// 		// Lấy thông tin 2 đội có số winners và scores cao nhất.
-										// 		thongTinCacDoi.sort((a, b) => {
-										// 			return (b.winner - a.winner) || (b.score - a.score);
-										// 		}).splice(2);
-
-										// 		let indexScore = _indexscoresCuaMoiBang + 1
-										// 		let indexTemp = 1;
-										// 		// Lặp để set vào từng trận tứ kết.
-										// 		thongTinCacDoi.map(thongTinMoiDoi => {
-										// 			let resultIndex = result.findIndex(match => {
-										// 				return match.round === +(`2.${indexScore}`);
-										// 			});
-
-										// 			let teamTemp = result[resultIndex][Object.keys(result[resultIndex])[indexTemp + 3]];
-										// 			teamTemp[(Object.keys(teamTemp)[0])] = thongTinMoiDoi.team._id;
-										// 			teamTemp.code = thongTinMoiDoi.team.tournament_team_id.team_id.code;
-										// 			teamTemp.logo = thongTinMoiDoi.team.tournament_team_id.team_id.logo;
-										// 			indexTemp++;
-										// 			indexScore++;
-										// 			if (indexScore === 3 || indexScore === 5) { 
-										// 				indexScore-= 2;
-										// 			};
-										// 		});
-										// 	}
-										// })
-
-										// scoresCuaToanBoVongTuKetTheoNhom.map((_scoresCuaMoiTranTuKet, _indexscoresCuaMoiTranTuKet) => {
-											
-										// })
-
+										utilities.setMatchesResult(result, scoresByGroupName, true)
 										callback(null, result);
 									}
 								})
@@ -318,7 +251,7 @@ module.exports = {
 			if (err) throw err;
 			scores.map((score, index) => {
 				score.score = body.scorePrediction[index];
-				// score.winner = body.winners[index];
+				score.winner = body.winners[index] === 'true' ? true : false;
 				score.save(err => {
 					if (err) throw err;
 				});
@@ -350,17 +283,18 @@ module.exports = {
 								result.push({
 									id: scores[i].match_id._id,
 									round: scores[i].match_id.round,
+									scoreId: scores[i]._id,
 									firstTeam: {
-										firstTeamId: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id._id : '',
 										code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
 										logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
-										score: scores[i].score
+										score: scores[i].score,
+										winner: scores[i].winner
 									},
 									secondTeam: {
-										secondTeamId: scores[i].tournament_team_id ? scores[j].tournament_team_id.team_id._id : '',
 										code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
 										logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
-										score: scores[j].score
+										score: scores[j].score,
+										winner: scores[j].winner
 									},
 									start_at: scores[i].match_id.start_at,
 								});
@@ -377,7 +311,7 @@ module.exports = {
 		Match.deleteOne({ _id: id }, callback);
 	},
 	deleteByTournament: (id, callback) => {
-		Match.deleteMany({ tournamentId: id}, (err) => {
+		Match.deleteMany({ tournamentId: id }, (err) => {
 			if (err) throw err;
 		})
 	}
