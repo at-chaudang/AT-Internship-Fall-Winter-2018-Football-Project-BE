@@ -26,20 +26,17 @@ module.exports = {
 				});
 				match.save((error) => {
 					if (error) { throw error };
-					for (j = 0, p = Promise.resolve(); j < 2; j++) {
-						p = p.then(_ => new Promise(resolve => {
-							let score = new Score({
-								match_id: match._id,
-								tournament_team_id: pair[j],
-								home: !j,
-								winner: null,
-								score: null
-							});
-							resolve();
-							score.save(err => {
-								if (err) throw err;
-							});
-						}))
+					for (j = 0; j < 2; j++) {
+						let score = new Score({
+							match_id: match._id,
+							tournament_team_id: pair[j],
+							home: !j,
+							winner: null,
+							score: null
+						});
+						score.save(err => {
+							if (err) throw err;
+						});
 					}
 				});
 			});
@@ -97,10 +94,12 @@ module.exports = {
 				score.save(err => {
 					if (err) throw err;
 				});
+
+				if (j === 2) {
+					callback(null, tournamentId);
+				}
 			}
 		});
-
-		callback(null, tournamentId);
 	},
 	getMatch: (id, callback) => {
 		Score.find({ match_id: id }).populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id' } })
@@ -109,6 +108,24 @@ module.exports = {
 					callback(null, scores);
 				}
 			)
+	},
+	updateKnockoutMatches: (tournamentId, callback) => {
+		Match.find({ tournamentId: tournamentId })
+			.then(
+				matches => {
+					let matchesIds = matches.map(match => match._id);
+					return Score.find({ match_id: { $in: matchesIds } })
+						.populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id' } });
+				})
+			.then(scores => {
+				let scoresOfAllTables = scores
+					.filter(score => score.match_id.round === 1)
+					.sort((a, b) => {
+						return a.tournament_team_id.groupName > b.tournament_team_id.groupName ? 1 : -1;
+					});
+				let scoresByGroupName = utilities.arrangeByGroup(scoresOfAllTables);
+				utilities.setMatchesResult(tournamentId, scoresByGroupName, true)
+			})
 	},
 	getAllByTournament: (tournamentId, callback) => {
 		Match.find({ tournamentId: tournamentId })
@@ -121,7 +138,15 @@ module.exports = {
 			.then(
 				scores => {
 					let result = [];
-					let scoresLength = scores.length;
+					let scoresLength = scores.length
+
+					let scoresOfAllTables = scores
+						.filter(score => score.match_id.round === 1)
+						.sort((a, b) => {
+							return a.tournament_team_id.groupName > b.tournament_team_id.groupName ? 1 : -1;
+						});
+					let scoresByGroupName = utilities.arrangeByGroup(scoresOfAllTables);
+
 					for (let i = 0; i < scoresLength; i++) {
 						for (let j = i + 1; j < scoresLength; j++) {
 							if (scores[i].match_id._id === scores[j].match_id._id) {
@@ -136,21 +161,25 @@ module.exports = {
 											firstTeamId: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id._id : '',
 											code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
 											logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
-											score: scores[i].score
+											score: scores[i].score,
+											winner: scores[i].winner
 										},
 										secondTeam: {
-											secondTeamId: scores[i].tournament_team_id ? scores[j].tournament_team_id.team_id._id : '',
+											secondTeamId: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id._id : '',
 											code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
 											logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
-											score: scores[j].score
+											score: scores[j].score,
+											winner: scores[j].winner
 										},
 										prediction: {
+											isAllow: (new Date(scores[i].match_id.start_at).getTime() < Date.now()) ? true : false,
 											is_predicted: prediction.length ? true : false,
 											firstTeam_score_prediction: prediction.length ? prediction[0].score_prediction : '',
 											secondTeam_score_prediction: prediction.length ? prediction[1].score_prediction : '',
 										}
 									});
-									if (result.length == scoresLength / 2) {
+									if (result.length === scoresLength / 2) {
+										utilities.setMatchesResult(result, scoresByGroupName, true)
 										callback(null, result);
 									}
 								})
@@ -220,10 +249,11 @@ module.exports = {
 			)
 	},
 	updateMatch: (body, callback) => {
-		Score.find({ match_id: body.match_id }, (err, callback) => {
+		Score.find({ match_id: body.match_id }, (err, scores) => {
 			if (err) throw err;
-			callback.map((score, index) => {
+			scores.map((score, index) => {
 				score.score = body.scorePrediction[index];
+				score.winner = body.winners[index] === 'true' ? true : false;
 				score.save(err => {
 					if (err) throw err;
 				});
@@ -237,6 +267,11 @@ module.exports = {
 				start_at: { $gt: Date.now() }
 			}
 		)
+			.sort(
+				{
+					start_at: 1
+				}
+			)
 			.limit(7)
 			.then(
 				matches => {
@@ -261,13 +296,15 @@ module.exports = {
 											id: scores[i].tournament_team_id.team_id.id,
 											code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
 											logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
-											score: scores[i].score
+											score: scores[i].score,
+											winner: scores[i].winner
 										},
 										secondTeam: {
 											id: scores[j].tournament_team_id.team_id.id,
 											code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
 											logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
-											score: scores[j].score
+											score: scores[j].score,
+											winner: scores[j].winner
 										},
 										start_at: scores[i].match_id.start_at,
 										prediction: {
@@ -284,12 +321,17 @@ module.exports = {
 							}
 						}
 					}
-					
+
 				}
 			)
 			;
 	},
 	deleteMatch: (id, callback) => {
 		Match.deleteOne({ _id: id }, callback);
+	},
+	deleteByTournament: (id, callback) => {
+		Match.deleteMany({ tournamentId: id }, (err) => {
+			if (err) throw err;
+		})
 	}
 }

@@ -51,5 +51,11 @@ module.exports = {
       if (err) throw err;
       res.json(callback);
     })
+  },
+  deleteByTournament: (req, res) => {
+    matchService.deleteByTournament(req.params.id, (err, callback) => {
+      if (err) throw err;
+      res.json(402);
+    })
   }
 }
