@@ -55,9 +55,9 @@ module.exports = function (result, scoresByGroups, flag) {
         let indexTeamScore = indexSuffixScore - 1;
         Score.find({ match_id: match[0].id }, (err, scores) => {
           if (err) throw err;
-            scores[indexTeamScore].tournament_team_id = eachTeamInformation.team.tournament_team_id._id;
-            scores[indexTeamScore].home = !indexSuffixScore;
-            scores[indexTeamScore].save((error) => {
+            scores[0].tournament_team_id = eachTeamInformation.team.tournament_team_id._id;
+            scores[0].home = !indexSuffixScore;
+            scores[0].save((error) => {
               if (error) throw error;
             });
             indexSuffixScore++;
