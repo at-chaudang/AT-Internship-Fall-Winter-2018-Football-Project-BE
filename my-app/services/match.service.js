@@ -258,11 +258,13 @@ module.exports = {
 										id: scores[i].match_id._id,
 										round: scores[i].match_id.round,
 										firstTeam: {
+											id: scores[i].tournament_team_id.team_id.id,
 											code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
 											logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
 											score: scores[i].score
 										},
 										secondTeam: {
+											id: scores[j].tournament_team_id.team_id.id,
 											code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
 											logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
 											score: scores[j].score
