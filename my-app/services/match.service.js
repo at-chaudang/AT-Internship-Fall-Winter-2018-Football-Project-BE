@@ -8,9 +8,6 @@ const utilities = require('../utilities/index');
 
 module.exports = {
 	selectAll: (callback) => {
-		// Score.find(
-		// 	{ $and: [{ tournament_team_id: { $ne: null }, match_id: { $ne: null } } ] }
-		// )
 		Score.find({ "tournament_team_id": { $ne: null }}).populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id' } })
 			.then(
 				scores => {
@@ -19,8 +16,7 @@ module.exports = {
 						for (let j = i + 1; j < scores.length; j++) {
 							if (scores[i].match_id === scores[j].match_id) {
 								result.push({
-									// id: scores[i].match_id._id,
-									// round: scores[i].match_id.round,
+									id: scores[i].match_id._id,
 									firstTeam: {
 										id: scores[i].tournament_team_id.team_id ? scores[i].tournament_team_id.team_id.id : null,
 										code: scores[i].tournament_team_id.team_id ? scores[i].tournament_team_id.team_id.code : null,
@@ -33,10 +29,9 @@ module.exports = {
 										logo: scores[j].tournament_team_id.team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
 										score: scores[j].score
 									},
-									start_at: scores[i].match_id ? scores[i].match_id.start_at : '1/1/2019',
+									start_at: scores[j].match_id.start_at
 								});
 								if (result.length == scores.length / 2) {
-									result = result.filter(match => match.firstTeam.code);
 									callback(null, result);
 								}
 							}
@@ -339,13 +334,13 @@ module.exports = {
 										id: scores[i].match_id._id,
 										round: scores[i].match_id.round,
 										firstTeam: {
-											id: scores[i].tournament_team_id.team_id.id,
+											id: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.id : null,
 											code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
 											logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
 											score: scores[i].score
 										},
 										secondTeam: {
-											id: scores[j].tournament_team_id.team_id.id,
+											id: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.id : null,
 											code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
 											logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
 											score: scores[j].score

@@ -43,10 +43,8 @@ module.exports = function (result, data) {
           for (let i = 0; i < indexRound; i++) {
             teamsInformation.push({
               team: _scoresEachGroup[i],
-              score: 1,
-              // score: +_scoresEachGroup[i].score,
-              winner: true,
-              // winner: +_scoresEachGroup[i].winner,
+              score: _scoresEachGroup[i] ? +_scoresEachGroup[i].score : null,
+              winner: _scoresEachGroup[i] ? +_scoresEachGroup[i].winner : false,
             });
           }
           teamsInformation.sort((a, b) => {
@@ -55,7 +53,9 @@ module.exports = function (result, data) {
         }
   
         let indexSuffixScore = _indexScoresEachGroup + 1;
-        if (!!scoresByGroupsKey && indexSuffixScore > 2) indexSuffixScore -= 2;
+        if (!!scoresByGroupsKey && indexSuffixScore > 2) { 
+          indexSuffixScore -= 2 
+        }
         // Lặp để set vào từng trận tứ kết.
         teamsInformation.map((eachTeamInformation) => {
           let match = result.filter(match => {
@@ -63,17 +63,17 @@ module.exports = function (result, data) {
           });
           Score.find({ match_id: match[0].id }, (err, scores) => {
             if (err) throw err;
-            // let indexRoundMatch = 0;
-            scores[1].tournament_team_id = eachTeamInformation.team.tournament_team_id._id;
-            scores[1].home = !indexSuffixScore;
-            scores[1].save((error) => {
-              if (error) throw error;
-            });
-            // indexRoundMatch = !(indexSuffixScore % 2) ? 1 : 0;
-            indexSuffixScore++;
-            if (indexSuffixScore === 3 || indexSuffixScore === 5) {
-              indexSuffixScore -= 2;
-            };
+            if (!scores[1].score) {
+              scores[1].tournament_team_id = eachTeamInformation.team.tournament_team_id._id;
+              scores[1].home = !indexSuffixScore;
+              scores[1].save((error) => {
+                if (error) throw error;
+              });
+              indexSuffixScore++;
+              if (indexSuffixScore === 3 || indexSuffixScore === 5) {
+                indexSuffixScore -= 2;
+              };
+            }
           });
         });
       }
