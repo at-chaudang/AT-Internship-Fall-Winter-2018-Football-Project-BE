@@ -18,25 +18,23 @@ module.exports = {
 								result.push({
 									id: scores[i].match_id._id,
 									firstTeam: {
-										id: scores[i].tournament_team_id.team_id ? scores[i].tournament_team_id.team_id.id : null,
-										code: scores[i].tournament_team_id.team_id ? scores[i].tournament_team_id.team_id.code : null,
-										logo: scores[i].tournament_team_id.team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
+										id: scores[i].tournament_team_id.team_id._id,
+										code: scores[i].tournament_team_id.team_id.code,
+										logo: `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}`,
 										score: scores[i].score
 									},
 									secondTeam: {
-										id: scores[j].tournament_team_id.team_id ? scores[j].tournament_team_id.team_id.id : null,
-										code: scores[j].tournament_team_id.team_id ? scores[j].tournament_team_id.team_id.code : null,
-										logo: scores[j].tournament_team_id.team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
+										id: scores[j].tournament_team_id.team_id._id,
+										code: scores[j].tournament_team_id.team_id.code,
+										logo: `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}`,
 										score: scores[j].score
 									},
 									start_at: scores[j].match_id.start_at
 								});
-								if (result.length == scores.length / 2) {
-									callback(null, result);
-								}
 							}
 						}
 					}
+					callback(null, result);
 				}
 			)
 	},
@@ -138,24 +136,6 @@ module.exports = {
 					callback(null, scores);
 				}
 			)
-	},
-	updateKnockoutMatches: (tournamentId, callback) => {
-		Match.find({ tournamentId: tournamentId })
-			.then(
-				matches => {
-					let matchesIds = matches.map(match => match._id);
-					return Score.find({ match_id: { $in: matchesIds } })
-						.populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id' } });
-				})
-			.then(scores => {
-				let scoresOfAllTables = scores
-					.filter(score => score.match_id.round === 1)
-					.sort((a, b) => {
-						return a.tournament_team_id.groupName > b.tournament_team_id.groupName ? 1 : -1;
-					});
-				let scoresByGroupName = utilities.arrangeByGroup(scoresOfAllTables);
-				utilities.setMatchesResult(tournamentId, scoresByGroupName, true)
-			})
 	},
 	getAllByTournament: (tournamentId, callback) => {
 		Match.find({ tournamentId: tournamentId })
@@ -308,19 +288,13 @@ module.exports = {
 		callback(null, 200);
 	},
 	getNextMatch: (callback) => {
-		Match.find(
-			{
-				start_at: { $gt: Date.now() }
-			}
-		)
-			.limit(7)
+		Match.find({start_at: { $gt: Date.now() }})
+			.limit(8)
 			.then(
 				matches => {
 					let matchesIds = matches.map(match => match._id);
-					return Score.find({
-						match_id: { $in: matchesIds }
-					})
-						.populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id' } });
+					return Score.find({ match_id: { $in: matchesIds } })
+						.populate({ path: 'tournament_team_id match_id', populate: { path: 'tournamentId team_id' } });
 				})
 			.then(
 				scores => {
@@ -333,14 +307,15 @@ module.exports = {
 									result.push({
 										id: scores[i].match_id._id,
 										round: scores[i].match_id.round,
+										tournamentName: scores[i].match_id.tournamentId.name,
 										firstTeam: {
-											id: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.id : null,
+											firstTeamId: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.id : null,
 											code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
 											logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
 											score: scores[i].score
 										},
 										secondTeam: {
-											id: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.id : null,
+											secondTeamId: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.id : null,
 											code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
 											logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
 											score: scores[j].score
