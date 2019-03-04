@@ -1,13 +1,26 @@
-module.exports = function(totalScores) {
-  let scoresByGroups = [];
-	let totalScoresLength = totalScores.length;
-    for (let i = 0; i < totalScoresLength - 1; i++) {
-    	let scoresByGroup = [];
-    	for (let j = i; j < (i + totalScoresLength / 4); j++) {
-    		scoresByGroup.push(totalScores[j]);
-    	}
-    	scoresByGroups.push(scoresByGroup);
-    	i += (totalScoresLength / 4 - 1);
-		}
-	return scoresByGroups;
+module.exports = function(data) {
+	let dataScores = {
+		scoresByGroupName: [], 
+		scoresByQuaterFinal: [], 
+		scoresBySemiFinal: []
+	}
+
+	Object.keys(dataScores).forEach((key, index) => {
+		let scoresByGroups = [];
+		let totalScoresLength = data[index].length;
+			for (let i = 0; i < totalScoresLength - 1; i++) {
+				let scoresByGroup = [];
+				for (let j = i; j < (i + totalScoresLength / 4); j++) {
+					scoresByGroup.push(data[index][j]);
+				}
+				scoresByGroups.push(scoresByGroup);
+				i += !(totalScoresLength / 4 - 1) ? 1 : totalScoresLength / 4 - 1;
+				if (i === 2) {
+					return;
+				}
+			}
+			dataScores[key] = scoresByGroups;
+	})
+
+	return dataScores;
 }

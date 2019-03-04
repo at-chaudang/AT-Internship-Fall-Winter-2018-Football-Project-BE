@@ -8,7 +8,42 @@ const utilities = require('../utilities/index');
 
 module.exports = {
 	selectAll: (callback) => {
-		Match.find(callback);
+		// Score.find(
+		// 	{ $and: [{ tournament_team_id: { $ne: null }, match_id: { $ne: null } } ] }
+		// )
+		Score.find({ "tournament_team_id": { $ne: null }}).populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id' } })
+			.then(
+				scores => {
+					let result = [];
+					for (let i = 0; i < scores.length; i++) {
+						for (let j = i + 1; j < scores.length; j++) {
+							if (scores[i].match_id === scores[j].match_id) {
+								result.push({
+									// id: scores[i].match_id._id,
+									// round: scores[i].match_id.round,
+									firstTeam: {
+										id: scores[i].tournament_team_id.team_id ? scores[i].tournament_team_id.team_id.id : null,
+										code: scores[i].tournament_team_id.team_id ? scores[i].tournament_team_id.team_id.code : null,
+										logo: scores[i].tournament_team_id.team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
+										score: scores[i].score
+									},
+									secondTeam: {
+										id: scores[j].tournament_team_id.team_id ? scores[j].tournament_team_id.team_id.id : null,
+										code: scores[j].tournament_team_id.team_id ? scores[j].tournament_team_id.team_id.code : null,
+										logo: scores[j].tournament_team_id.team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
+										score: scores[j].score
+									},
+									start_at: scores[i].match_id ? scores[i].match_id.start_at : '1/1/2019',
+								});
+								if (result.length == scores.length / 2) {
+									result = result.filter(match => match.firstTeam.code);
+									callback(null, result);
+								}
+							}
+						}
+					}
+				}
+			)
 	},
 	createMatch: async (body, callback) => {
 		let { tournamentId, groups } = JSON.parse(body.data);
@@ -102,7 +137,7 @@ module.exports = {
 		});
 	},
 	getMatch: (id, callback) => {
-		Score.find({ match_id: id }).populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id' } })
+		Score.find({ match_id: id }).populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id tournament_id' } })
 			.then(
 				scores => {
 					callback(null, scores);
@@ -140,13 +175,29 @@ module.exports = {
 					let result = [];
 					let scoresLength = scores.length
 					
-					let scoresOfAllTables = scores
-						.filter(score => score.match_id.round === 1)
-						.sort((a, b) => {
-							return a.tournament_team_id.groupName > b.tournament_team_id.groupName ? 1 : -1;
-						});
-					let scoresByGroupName = utilities.arrangeByGroup(scoresOfAllTables);
+					let scoresOfAllTables = [];
+					let scoresOfAllQuaterFinal = [];
+					let scoresOfAllSemiFinal = [];
+
+					scores.sort((a, b) => {
+						return a.match_id.round > b.match_id.round ? 1 : -1;
+					}).map(score => {
+						if (score.match_id.round < 2) {
+							scoresOfAllTables.push(score)
+						} else if (score.match_id.round < 3) {
+							scoresOfAllQuaterFinal.push(score);
+						} else if (score.match_id.round < 4) {
+							scoresOfAllSemiFinal.push(score)
+						} else {}
+					});
+
+					scoresOfAllTables.sort((a, b) => {
+						return a.tournament_team_id.groupName > b.tournament_team_id.groupName ? 1 : -1;
+					});	
 					
+					let { scoresByGroupName, scoresByQuaterFinal, scoresBySemiFinal } 
+						= utilities.arrangeByGroup([scoresOfAllTables, scoresOfAllQuaterFinal, scoresOfAllSemiFinal]);
+
 					for (let i = 0; i < scoresLength; i++) {
 						for (let j = i + 1; j < scoresLength; j++) {
 							if (scores[i].match_id._id === scores[j].match_id._id) {
@@ -179,7 +230,7 @@ module.exports = {
 										}
 									});
 									if (result.length === scoresLength / 2) {
-										utilities.setMatchesResult(result, scoresByGroupName, true)
+										utilities.setMatchesResult(result, [scoresByGroupName, scoresByQuaterFinal, scoresBySemiFinal]);
 										callback(null, result);
 									}
 								})
@@ -282,32 +333,40 @@ module.exports = {
 					for (let i = 0; i < scores.length; i++) {
 						for (let j = i + 1; j < scores.length; j++) {
 							if (scores[i].match_id === scores[j].match_id) {
-								result.push({
-									id: scores[i].match_id._id,
-									round: scores[i].match_id.round,
-									scoreId: scores[i]._id,
-									firstTeam: {
-										code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
-										logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
-										score: scores[i].score,
-										winner: scores[i].winner
-									},
-									secondTeam: {
-										code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
-										logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
-										score: scores[j].score,
-										winner: scores[j].winner
-									},
-									start_at: scores[i].match_id.start_at,
+								Prediction.find({ match_id: scores[i].match_id._id }, (err, prediction) => {
+									if (err) throw err;
+									result.push({
+										id: scores[i].match_id._id,
+										round: scores[i].match_id.round,
+										firstTeam: {
+											id: scores[i].tournament_team_id.team_id.id,
+											code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
+											logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
+											score: scores[i].score
+										},
+										secondTeam: {
+											id: scores[j].tournament_team_id.team_id.id,
+											code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
+											logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
+											score: scores[j].score
+										},
+										start_at: scores[i].match_id.start_at,
+										prediction: {
+											is_predicted: prediction.length ? true : false,
+											firstTeam_score_prediction: prediction.length ? prediction[0].score_prediction : '',
+											secondTeam_score_prediction: prediction.length ? prediction[1].score_prediction : '',
+										}
+									});
+									if (result.length == scores.length / 2) {
+										result = result.filter(match => match.firstTeam.code);
+										callback(null, result);
+									}
 								});
 							}
 						}
 					}
-					result = result.filter(match => match.firstTeam.code);
-					callback(null, result);
 				}
-			)
-			;
+			);
 	},
 	deleteMatch: (id, callback) => {
 		Match.deleteOne({ _id: id }, callback);
