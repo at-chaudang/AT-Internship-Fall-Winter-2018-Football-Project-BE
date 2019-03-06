@@ -1,8 +1,8 @@
 const TournamentTeam = require('./../models/tournament_team.model');
 
 module.exports = {
-  selectAll: (callback) => {
-    TournamentTeam.find(callback);
+  selectAll: (id, callback) => {
+    TournamentTeam.find({ team_id: id }, callback);
   },
   createTournamentTeam: (body, callback) => {
     const match = new TournamentTeam(body);

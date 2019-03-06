@@ -2,7 +2,8 @@ const TeamService = require('../services/team.service');
 
 module.exports = {
   index: (req, res) => {
-    TeamService.selectAll((err, callback) => {
+    const id = req.params.id;
+    TeamService.selectAll(id, (err, callback) => {
       if (err) throw err;
       res.json(callback);
     });
