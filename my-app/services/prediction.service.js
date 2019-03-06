@@ -8,7 +8,8 @@ module.exports = {
   createPrediction: (body, callback) => {
     Match.findOne({ _id: body.match_id }, (err, match) => {
       if (err) throw err;
-      if (new Date(match.start_at).getTime() > Date.now()) {
+      let matchTime = new Date(match.start_at).getTime();
+      if (matchTime > Date.now()) {
         Prediction.find({ match_id: body.match_id }, (err, predictions) => {
           if (err) throw err;
           if (predictions.length) {

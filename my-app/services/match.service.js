@@ -153,29 +153,6 @@ module.exports = {
 					let result = [];
 					let scoresLength = scores.length
 					
-					let scoresOfAllTables = [];
-					let scoresOfAllQuaterFinal = [];
-					let scoresOfAllSemiFinal = [];
-
-					scores.sort((a, b) => {
-						return a.match_id.round > b.match_id.round ? 1 : -1;
-					}).map(score => {
-						if (score.match_id.round < 2) {
-							scoresOfAllTables.push(score)
-						} else if (score.match_id.round < 3) {
-							scoresOfAllQuaterFinal.push(score);
-						} else if (score.match_id.round < 4) {
-							scoresOfAllSemiFinal.push(score)
-						} else {}
-					});
-
-					scoresOfAllTables.sort((a, b) => {
-						return a.tournament_team_id.groupName > b.tournament_team_id.groupName ? 1 : -1;
-					});	
-					
-					let { scoresByGroupName, scoresByQuaterFinal, scoresBySemiFinal } 
-						= utilities.arrangeByGroup([scoresOfAllTables, scoresOfAllQuaterFinal, scoresOfAllSemiFinal]);
-
 					for (let i = 0; i < scoresLength; i++) {
 						for (let j = i + 1; j < scoresLength; j++) {
 							if (scores[i].match_id._id === scores[j].match_id._id) {
@@ -208,7 +185,6 @@ module.exports = {
 										}
 									});
 									if (result.length === scoresLength / 2) {
-										utilities.setMatchesResult([scoresByGroupName, scoresByQuaterFinal, scoresBySemiFinal]);
 										callback(null, result);
 									}
 								})
@@ -296,7 +272,7 @@ module.exports = {
 				matches => {
 					let matchesIds = matches.map(match => match._id);
 					return Score.find({ match_id: { $in: matchesIds }, tournament_team_id: { $ne: null } })
-						.populate({ path: 'tournament_team_id match_id', populate: { path: 'tournamentId team_id' } }).limit(16);
+						.populate({ path: 'tournament_team_id match_id', populate: { path: 'tournamentId team_id' } }).limit(14);
 				})
 			.then(
 				scores => {
@@ -330,7 +306,6 @@ module.exports = {
 										}
 									});
 									if (result.length == scores.length / 2) {
-										// result = result.filter(match => match.firstTeam.code);
 										callback(null, result);
 									}
 								});
