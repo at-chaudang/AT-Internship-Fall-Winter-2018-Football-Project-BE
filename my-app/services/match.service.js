@@ -8,7 +8,7 @@ const utilities = require('../utilities/index');
 
 module.exports = {
 	selectAll: (callback) => {
-		Score.find({ "tournament_team_id": { $ne: null }}).populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id' } })
+		Score.find({ "tournament_team_id": { $ne: null }}).populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id tournamentId' } })
 			.then(
 				scores => {
 					let result = [];
@@ -16,6 +16,7 @@ module.exports = {
 						for (let j = i + 1; j < scores.length; j++) {
 							if (scores[i].match_id === scores[j].match_id) {
 								result.push({
+									tournamentName: scores[i].match_id.tournamentId.name,
 									id: scores[i].match_id._id,
 									firstTeam: {
 										id: scores[i].tournament_team_id.team_id._id,

@@ -1,16 +1,20 @@
 const Score = require('../models/score.model');
 
 module.exports = function (result, data) {
+  let dataScores = {
+    scoresByGroupName: [],
+    scoresByQuaterFinal: [],
+    scoresBySemiFinal: []
+  }
+
   data.map((scoresByGroups, scoresByGroupsKey) => {
-    // Lặp từng mỗi nhóm bảng.
     scoresByGroups.map((_scoresEachGroup, _indexScoresEachGroup) => {
       // Tìm xem trong mỗi bảng có trận mô chưa set ko.
       let unSetKnockOut = _scoresEachGroup.filter(score => {
         return score.score === null
-      })
+      });
       if (!unSetKnockOut.length) {
         let teamsInformation = [];
-  
         // Sắp 12 scores lại theo từng đội, cứ 3 scores đầu là cho 1 đội.
         _scoresEachGroup.sort((a, b) => {
           return a.tournament_team_id > b.tournament_team_id ? 1 : -1;
@@ -37,6 +41,7 @@ module.exports = function (result, data) {
           teamsInformation.sort((a, b) => {
             return (b.winner - a.winner) || (b.score - a.score);
           }).splice(2);
+          dataScores[Object.keys(dataScores)[scoresByGroupsKey]].push(teamsInformation[0], teamsInformation[1]);
         } else {
           imges = (scoresByGroupsKey === 1) ? 3 : 4;
           let indexRound = (scoresByGroupsKey !== 1) ? 2 : 1;
@@ -50,33 +55,64 @@ module.exports = function (result, data) {
           teamsInformation.sort((a, b) => {
             return (b.winner - a.winner) || (b.score - a.score);
           }).splice(1);
+          dataScores[Object.keys(dataScores)[scoresByGroupsKey]].push(teamsInformation);
         }
-  
-        let indexSuffixScore = _indexScoresEachGroup + 1;
-        if (!!scoresByGroupsKey && indexSuffixScore > 2) { 
-          indexSuffixScore -= 2 
-        }
-        // Lặp để set vào từng trận tứ kết.
-        teamsInformation.map((eachTeamInformation) => {
-          let match = result.filter(match => {
-            return match.round === +(`${imges}.${indexSuffixScore}`);
-          });
-          Score.find({ match_id: match[0].id }, (err, scores) => {
-            if (err) throw err;
-            if (!scores[1].score) {
-              scores[1].tournament_team_id = eachTeamInformation.team.tournament_team_id._id;
-              scores[1].home = !indexSuffixScore;
-              scores[1].save((error) => {
-                if (error) throw error;
-              });
-              indexSuffixScore++;
-              if (indexSuffixScore === 3 || indexSuffixScore === 5) {
-                indexSuffixScore -= 2;
-              };
-            }
-          });
-        });
       }
     });
   });
+
+  let indexsRunning = [0, 1, 1, 0, 0, 1, 1, 0];
+  let indexScores = [1, 2, 1, 2, 3, 4, 3, 4];
+  let indexsRunningTemp = 0;
+
+  Object.keys(dataScores).forEach((key, index) => {
+    if (index === 0) {
+      dataScores[key].map(groupNames => {
+        let match = result.filter(match => {
+          return match.round === +(`2.${indexScores[indexsRunningTemp]}`);
+        });
+        Score.find({ match_id: match[0].id }, (err, scores) => {
+          if (err) throw err;
+          if (!scores[1].score) {
+            scores[indexsRunning[indexsRunningTemp]].tournament_team_id = groupNames.team.tournament_team_id._id;
+            scores[indexsRunning[indexsRunningTemp]].home = !indexsRunningTemp;
+            scores[indexsRunning[indexsRunningTemp++]].save((error) => {
+              if (error) throw error;
+            });
+          }
+        }).populate('match_id');
+      })
+    }
+  })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
