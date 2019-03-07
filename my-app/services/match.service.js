@@ -256,7 +256,6 @@ module.exports = {
 	updateMatch: (body, callback) => {
 		Score.find({ match_id: body.match_id }, (err, scores) => {
 			if (err) throw err;
-			tournament_team_ids = ["5c7f996b1329561d847789c8", "5c7f996b1329561d847789c8"]
 			scores.map((score, index) => {
 				score.score = body.scorePrediction[index];
 				score.winner = body.winners[index] === 'true' ? true : false;
