@@ -291,13 +291,12 @@ module.exports = {
 		callback(null, 200);
 	},
 	getNextMatch: (callback) => {
-		Match.find({start_at: { $gt: Date.now() }})
-			.limit(8)
+		Match.find({start_at: { $gt: Date.now() } })
 			.then(
 				matches => {
 					let matchesIds = matches.map(match => match._id);
-					return Score.find({ match_id: { $in: matchesIds } })
-						.populate({ path: 'tournament_team_id match_id', populate: { path: 'tournamentId team_id' } });
+					return Score.find({ match_id: { $in: matchesIds }, tournament_team_id: { $ne: null } })
+						.populate({ path: 'tournament_team_id match_id', populate: { path: 'tournamentId team_id' } }).limit(16);
 				})
 			.then(
 				scores => {
@@ -331,7 +330,7 @@ module.exports = {
 										}
 									});
 									if (result.length == scores.length / 2) {
-										result = result.filter(match => match.firstTeam.code);
+										// result = result.filter(match => match.firstTeam.code);
 										callback(null, result);
 									}
 								});
