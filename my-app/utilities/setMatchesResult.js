@@ -1,30 +1,24 @@
 const Score = require('../models/score.model');
 
-module.exports = function (result, data) {
-  let dataScores = {
-    scoresByGroupName: [],
-    scoresByQuaterFinal: [],
-    scoresBySemiFinal: []
-  }
+module.exports = function (data) {
+  let indexsRunning = [0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0];
+  let indexRun = 0;
 
   data.map((scoresByGroups, scoresByGroupsKey) => {
+    // Loop through each tables
     scoresByGroups.map((_scoresEachGroup, _indexScoresEachGroup) => {
-      // Tìm xem trong mỗi bảng có trận mô chưa set ko.
+      // Find out whether each table's match is set or not.
       let unSetKnockOut = _scoresEachGroup.filter(score => {
         return score.score === null
-      });
+      })
       if (!unSetKnockOut.length) {
         let teamsInformation = [];
-        // Sắp 12 scores lại theo từng đội, cứ 3 scores đầu là cho 1 đội.
+        // Sort 12 scores by each team, each 3 scores for 1 team.
         _scoresEachGroup.sort((a, b) => {
           return a.tournament_team_id > b.tournament_team_id ? 1 : -1;
         });
-        // 	Tiếp tục chia scores ra thành 4 nhóm theo mỗi đội để lấy tỉ số và độ ưu tiên thằng thua
-        // mối nhóm 3 scores cho mỗi đội.
-        // 	i === teams length and j === scores(3)
-        let imges;
+        // Separate scores into 4 groups by each team to get scores and winners.
         if (!scoresByGroupsKey) {
-          imges = 2;
           for (let i = 0; i < 4; i++) {
             let totalGoals = winner = 0;
             for (let j = i * 3; j < i * 3 + 3; j++) {
@@ -37,82 +31,51 @@ module.exports = function (result, data) {
               winner: winner
             });
           }
-          // Lấy thông tin 2 đội có số winners và scores cao nhất.
+          // Get information of 2 teams that have highest winner number and score nummber.
           teamsInformation.sort((a, b) => {
             return (b.winner - a.winner) || (b.score - a.score);
           }).splice(2);
-          dataScores[Object.keys(dataScores)[scoresByGroupsKey]].push(teamsInformation[0], teamsInformation[1]);
         } else {
-          imges = (scoresByGroupsKey === 1) ? 3 : 4;
           let indexRound = (scoresByGroupsKey !== 1) ? 2 : 1;
           for (let i = 0; i < indexRound; i++) {
             teamsInformation.push({
               team: _scoresEachGroup[i],
-              score: _scoresEachGroup[i] ? +_scoresEachGroup[i].score : null,
-              winner: _scoresEachGroup[i] ? +_scoresEachGroup[i].winner : false,
+              score: +_scoresEachGroup[i].score,
+              winner: +_scoresEachGroup[i].winner,
             });
           }
           teamsInformation.sort((a, b) => {
             return (b.winner - a.winner) || (b.score - a.score);
           }).splice(1);
-          dataScores[Object.keys(dataScores)[scoresByGroupsKey]].push(teamsInformation);
+        }
+
+        let indexSuffixScore = _indexScoresEachGroup + 1;
+        if (!!scoresByGroupsKey && indexSuffixScore > 2) indexSuffixScore -= 2;
+        if (!!scoresByGroupsKey && indexSuffixScore > 2) { 
+          indexSuffixScore -= 2 
+        }
+        // Loop to set to inner rounds.
+        for (let i = 0, p = Promise.resolve(); i < teamsInformation.length; i++) {
+          p = p.then(_ => new Promise(resolve => {
+            let match_id = teamsInformation[i].team.match_id._id;
+            if (!teamsInformation[i].score) {
+              Score.find({ match_id: match_id }, (err, scores) => {
+                if (err) throw err;
+                scores[indexsRunning[indexRun]].tournament_team_id = teamsInformation[i].team.tournament_team_id._id;
+                scores[indexsRunning[indexRun]].home = !indexSuffixScore;
+                scores[indexsRunning[indexRun++]].save((error) => {
+                  if (error) throw error;
+                  indexSuffixScore++;
+                });
+                if (indexSuffixScore === 3 || indexSuffixScore === 5) {
+                  indexSuffixScore -= 2;
+                };
+              });
+              resolve();
+            }
+          }))
         }
       }
     });
   });
-
-  let indexsRunning = [0, 1, 1, 0, 0, 1, 1, 0];
-  let indexScores = [1, 2, 1, 2, 3, 4, 3, 4];
-  let indexsRunningTemp = 0;
-
-  Object.keys(dataScores).forEach((key, index) => {
-    if (index === 0) {
-      dataScores[key].map(groupNames => {
-        let match = result.filter(match => {
-          return match.round === +(`2.${indexScores[indexsRunningTemp]}`);
-        });
-        Score.find({ match_id: match[0].id }, (err, scores) => {
-          if (err) throw err;
-          if (!scores[1].score) {
-            scores[indexsRunning[indexsRunningTemp]].tournament_team_id = groupNames.team.tournament_team_id._id;
-            scores[indexsRunning[indexsRunningTemp]].home = !indexsRunningTemp;
-            scores[indexsRunning[indexsRunningTemp++]].save((error) => {
-              if (error) throw error;
-            });
-          }
-        }).populate('match_id');
-      })
-    }
-  })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

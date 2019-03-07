@@ -206,7 +206,7 @@ module.exports = {
 										}
 									});
 									if (result.length === scoresLength / 2) {
-										utilities.setMatchesResult(result, [scoresByGroupName, scoresByQuaterFinal, scoresBySemiFinal]);
+										utilities.setMatchesResult([scoresByGroupName, scoresByQuaterFinal, scoresBySemiFinal]);
 										callback(null, result);
 									}
 								})

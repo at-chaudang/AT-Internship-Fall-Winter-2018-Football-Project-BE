@@ -10,8 +10,14 @@ module.exports = function(data) {
 		let totalScoresLength = data[index].length;
 			for (let i = 0; i < totalScoresLength - 1; i++) {
 				let scoresByGroup = [];
-				for (let j = i; j < (i + totalScoresLength / 4); j++) {
-					scoresByGroup.push(data[index][j]);
+				if (index === 2) {
+					for (let j = i; j < (i + totalScoresLength / 4 + 1); j++) {
+						scoresByGroup.push(data[index][j]);
+					}
+				} else {
+					for (let j = i; j < (i + totalScoresLength / 4); j++) {
+						scoresByGroup.push(data[index][j]);
+					}
 				}
 				scoresByGroups.push(scoresByGroup);
 				i += !(totalScoresLength / 4 - 1) ? 1 : totalScoresLength / 4 - 1;
@@ -21,6 +27,5 @@ module.exports = function(data) {
 			}
 			dataScores[key] = scoresByGroups;
 	})
-
 	return dataScores;
 }
