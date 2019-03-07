@@ -2,9 +2,11 @@ const mongoose = require('mongoose');
 
 const Match = require('../models/match.model');
 const Score = require('../models/score.model');
+const Team = require('../models/team.model');
 const Prediction = require('../models/prediction.model');
 const Tournament = require('../models/tournament.model');
 const utilities = require('../utilities/index');
+const Operator = require('../models/tournament_team.model');
 
 module.exports = {
 	selectAll: (callback) => {
@@ -343,8 +345,42 @@ module.exports = {
 		Match.deleteOne({ _id: id }, callback);
 	},
 	deleteByTournament: (id, callback) => {
-		Match.deleteMany({ tournamentId: id }, (err) => {
+		Match.find({ tournamentId: id }).then(matches => {
+			let matchesIds = matches.map(match => match._id);
+			Score.find({ match_id: { $in: matchesIds } }, (err, scores) => {
+				if (err) throw err;
+				scores.map(score => Score.deleteOne({_id: score._id}, (err => {
+					if (err) throw err;
+				})));
+			});
+			Prediction.find({ match_id: { $in: matchesIds } }, (err, predictions) => {
+				if (err) throw err;
+				predictions.map(prediction => Prediction.deleteOne({_id: prediction._id}, (err => {
+					if (err) throw err;
+				})));
+			});
+			Match.deleteMany({ tournamentId: id }, (err) => {
+				if (err) throw err;
+			});
+		});
+
+		Operator.find({ tournament_id: id }, (err, operators) => {
 			if (err) throw err;
-		})
+			let teamIds = operators.map(operator => operator.team_id);
+			Team.find({ _id: { $in: teamIds } }, (err, teams) => {
+				if (err) throw err;
+				teams.map(team => Team.deleteOne({_id: team._id}, (err => {
+					if (err) throw err;
+				})));
+			});
+			Operator.deleteMany({ tournament_id: id }, (err) => {
+				if (err) throw err;
+			});
+		});
+
+		Tournament.deleteOne({ _id: id}, (err) => {
+			if (err) throw err;
+			callback(null, 200);
+		});
 	}
 }

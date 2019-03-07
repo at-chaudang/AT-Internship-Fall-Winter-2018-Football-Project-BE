@@ -10,6 +10,6 @@ router.get('/:id', matchCtrl.show);
 router.get('/show/:tournamentId', matchCtrl.showAllByTournament);
 router.get('/tournament/:tournamentId', matchCtrl.showBracketByTournament);
 router.post('/update', matchCtrl.update);
-router.post('/:id', matchCtrl.delete);
+router.post('/:id', matchCtrl.deleteByTournament);
 
 module.exports = router;
