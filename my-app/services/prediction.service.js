@@ -9,7 +9,7 @@ module.exports = {
     Match.findOne({ _id: body.match_id }, (err, match) => {
       if (err) throw err;
       let matchTime = new Date(match.start_at).getTime();
-      if (matchTime > Date.now()) {
+      if (matchTime > new Date().getTime()) {
         Prediction.find({ match_id: body.match_id }, (err, predictions) => {
           if (err) throw err;
           if (predictions.length) {

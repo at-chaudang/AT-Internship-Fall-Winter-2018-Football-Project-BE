@@ -21,15 +21,15 @@ module.exports = {
 									tournamentName: scores[i].match_id.tournamentId.name,
 									id: scores[i].match_id._id,
 									firstTeam: {
-										id: scores[i].tournament_team_id.team_id._id,
-										code: scores[i].tournament_team_id.team_id.code,
-										logo: `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}`,
+										id: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id._id : null,
+										code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
+										logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : null,
 										score: scores[i].score
 									},
 									secondTeam: {
-										id: scores[j].tournament_team_id.team_id._id,
-										code: scores[j].tournament_team_id.team_id.code,
-										logo: `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}`,
+										id: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id._id : null,
+										code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
+										logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : null,
 										score: scores[j].score
 									},
 									start_at: scores[j].match_id.start_at
