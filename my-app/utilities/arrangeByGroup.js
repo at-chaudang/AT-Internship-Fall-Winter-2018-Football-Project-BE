@@ -1,8 +1,8 @@
 module.exports = function(data) {
 	let dataScores = {
 		scoresByGroupName: [], 
-		scoresByQuaterFinal: [], 
-		scoresBySemiFinal: []
+		// scoresByQuaterFinal: [], 
+		// scoresBySemiFinal: []
 	}
 
 	Object.keys(dataScores).forEach((key, index) => {
