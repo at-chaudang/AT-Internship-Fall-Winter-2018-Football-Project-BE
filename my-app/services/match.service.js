@@ -257,15 +257,15 @@ module.exports = {
 		Score.find({ match_id: body.match_id }, (err, scores) => {
 			if (err) throw err;
 			scores.map((score, index) => {
+				score.tournament_team_id = tournament_team_ids[index];
+				score.start_at = body.start_at;
 				score.score = body.scorePrediction[index];
 				score.winner = body.winners[index] === 'true' ? true : false;
-				score.tournament_team_id = tournament_team_ids[index];
 				score.save(err => {
 					if (err) throw err;
 				});
-			
 			});
-		}).populate({ path: 'tournament_team_id', populate: { path: 'team_id' } });
+		}).populate({ path: 'tournament_team_id match_id'});
 		callback(null, 200);
 	},
 	getNextMatch: (callback) => {
