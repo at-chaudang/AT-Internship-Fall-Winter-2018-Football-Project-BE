@@ -107,7 +107,7 @@ module.exports = {
 		new Date(startDate).getHours() === 18 ? startDate += 7200000 : startDate += 46 * 3600000;
 		let match = new Match({
 			play_at: null,
-			round: 4.2,
+			round: groups.length === 8 ? 5.1 : 4.2,
 			tournamentId: mongoose.Types.ObjectId(tournamentId),
 			desc: null,
 			start_at: startDate
@@ -140,6 +140,34 @@ module.exports = {
 				}
 			)
 	},
+	getTopTeamsByGroup: (tournamentId, callback) => {
+		Match.find({ tournamentId: tournamentId })
+			.then(
+				matches => {
+					let matchesIds = matches.map(match => match._id);
+					return Score.find({ match_id: { $in: matchesIds } })
+						.populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id' } });
+				})
+			.then(
+				scores => {
+					let unSetAllKnockOut = scores.filter(score => (score.score === null && score.match_id.round === 1));
+					if (!unSetAllKnockOut.length) {
+						let { scoresOfAllTables } = utilities.sortKindOfMatches(scores);
+						let scoresByGroupName = utilities.sortByGroup(scoresOfAllTables, false);
+						let responsingData = [];
+						scoresByGroupName.map((_scoresEachGroup) => {
+							let teamsInformationOfTwelve = utilities.calcScore(_scoresEachGroup);
+							utilities.getTopTeams(teamsInformationOfTwelve, 0).map(teamsInformation => {
+								responsingData.push(teamsInformation);
+							});
+						})
+						callback(null, responsingData);
+					} else {
+						callback(null, null);
+					}
+				}
+			)
+	},
 	getAllByTournament: (tournamentId, callback) => {
 		Match.find({ tournamentId: tournamentId })
 			.then(
@@ -151,40 +179,10 @@ module.exports = {
 			.then(
 				scores => {
 					let result = [];
-					let scoresLength = scores.length
+					let scoresLength = scores.length;
 
-					let scoresOfAllTables = [];
-					let scoresOfAllQuaterFinal = [];
-					let scoresOfAllSemiFinal = [];
-					let scoresOfAllFinal = [];
+					utilities.setMatchesResult(scores);
 
-					scores.sort((a, b) => {
-						return a.match_id.round > b.match_id.round ? 1 : -1;
-					}).map(score => {
-						if (score.match_id.round < 2) {
-							scoresOfAllTables.push(score)
-						} else if (score.match_id.round < 3) {
-							scoresOfAllQuaterFinal.push(score);
-						} else if (score.match_id.round < 4) {
-							scoresOfAllSemiFinal.push(score)
-						} else {
-							scoresOfAllFinal.push(score)
-						}
-					});
-
-					scoresOfAllTables.sort((a, b) => {
-						return a.tournament_team_id.groupName > b.tournament_team_id.groupName ? 1 : -1;
-					});
-
-					scoresOfAllQuaterFinal.sort((a, b) => {
-						return a.match_id.round > b.match_id.round ? 1 : -1;
-					});
-
-					let { scoresByGroupName, scoresByQuaterFinal, scoresBySemiFinal }
-					= utilities.arrangeByGroup([scoresOfAllTables, scoresOfAllQuaterFinal, scoresOfAllSemiFinal]);
-
-					utilities.setMatchesResult([scoresByGroupName, scoresByQuaterFinal, scoresBySemiFinal], scoresOfAllQuaterFinal, scoresOfAllSemiFinal, scoresOfAllFinal);
-					
 					for (let i = 0; i < scoresLength; i++) {
 						for (let j = i + 1; j < scoresLength; j++) {
 							if (scores[i].match_id._id === scores[j].match_id._id) {
@@ -299,7 +297,7 @@ module.exports = {
 		callback(null, 200);
 	},
 	getNextMatch: (callback) => {
-		Match.find({start_at: { $gt: Date.now() } })
+		Match.find({ start_at: { $gt: Date.now() } })
 			.then(
 				matches => {
 					let matchesIds = matches.map(match => match._id);
@@ -355,13 +353,13 @@ module.exports = {
 			let matchesIds = matches.map(match => match._id);
 			Score.find({ match_id: { $in: matchesIds } }, (err, scores) => {
 				if (err) throw err;
-				scores.map(score => Score.deleteOne({_id: score._id}, (err => {
+				scores.map(score => Score.deleteOne({ _id: score._id }, (err => {
 					if (err) throw err;
 				})));
 			});
 			Prediction.find({ match_id: { $in: matchesIds } }, (err, predictions) => {
 				if (err) throw err;
-				predictions.map(prediction => Prediction.deleteOne({_id: prediction._id}, (err => {
+				predictions.map(prediction => Prediction.deleteOne({ _id: prediction._id }, (err => {
 					if (err) throw err;
 				})));
 			});
@@ -375,7 +373,7 @@ module.exports = {
 			let teamIds = operators.map(operator => operator.team_id);
 			Team.find({ _id: { $in: teamIds } }, (err, teams) => {
 				if (err) throw err;
-				teams.map(team => Team.deleteOne({_id: team._id}, (err => {
+				teams.map(team => Team.deleteOne({ _id: team._id }, (err => {
 					if (err) throw err;
 				})));
 			});
@@ -384,7 +382,7 @@ module.exports = {
 			});
 		});
 
-		Tournament.deleteOne({ _id: id}, (err) => {
+		Tournament.deleteOne({ _id: id }, (err) => {
 			if (err) throw err;
 			callback(null, 200);
 		});
