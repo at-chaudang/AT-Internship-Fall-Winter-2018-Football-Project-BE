@@ -14,6 +14,7 @@ module.exports = function(_scoresEachGroup) {
     let scoresEachGroupFirstScore = _scoresEachGroup[i].score;
     let scoresEachGroupFirstTourTeamId = _scoresEachGroup[i].tournament_team_id;
     let scoresEachGroupFirstWinner = _scoresEachGroup[i].winner;
+    
     let scoresEachGroupNextScore = _scoresEachGroup[i + 1].score;
     let scoresEachGroupNextTourTeamId = _scoresEachGroup[i + 1].tournament_team_id;
     let scoresEachGroupNextWinner = _scoresEachGroup[i + 1].winner;

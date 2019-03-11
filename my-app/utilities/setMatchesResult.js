@@ -10,13 +10,12 @@ module.exports = function (scores) {
   // Nếu các trận vòng bảng đã được set thì bắt đầu set tứ kết hay knockout (với 32 đội)
   let unSetAllKnockOut = scores.filter(score => (score.score === null && score.match_id.round === 1));
   if (!unSetAllKnockOut.length) {
-    let scoresByGroupName = sortByGroup(scoresOfAllTables, false);
     let indexsRunning = [0, 3, 2, 1, 4, 7, 5, 6, 8, 11, 10, 9, 12, 15, 13, 14];
     let indexRun = 0;
+    let scoresByGroupName = sortByGroup(scoresOfAllTables, false);
     scoresByGroupName.map((_scoresEachGroup) => {
-      let teamsInformation = [];
       let teamsInformationOfTwelve = calcScore(_scoresEachGroup);
-      teamsInformation = getTopTeams(teamsInformationOfTwelve, 0);
+      let teamsInformation = getTopTeams(teamsInformationOfTwelve, 0);
       teamsInformation.map(teamInformation => {
         let indexsRunnings = indexsRunning[indexRun++];
         let score = new Score(scoresOfAllQuaterFinal[indexsRunnings]);
@@ -29,9 +28,9 @@ module.exports = function (scores) {
   let unSetQuarterFinal = scoresOfAllQuaterFinal.findIndex(score => (score.score === null));
   // Nếu các trận tứ kết hay knockout (với 32 đội) đã được set thì bắt đầu set bán kết hay tứ kết (với 32 đội)
   if (!unSetQuarterFinal.length) {
-    let scoresByQuaterFinal = sortByGroup(scoresOfAllQuaterFinal, false);
     let indexsRunning = [0, 1, 2, 3, 4, 5, 6, 7];
     let indexRun = 0;
+    let scoresByQuaterFinal = sortByGroup(scoresOfAllQuaterFinal, false);
     scoresByQuaterFinal.map((_scoresEachGroup) => {
       let teamsInformation = getTopTeams(_scoresEachGroup, 1);
       teamsInformation.map(teamInformation => {
@@ -68,9 +67,8 @@ module.exports = function (scores) {
   }
 }
 
-/* function saveToDB(teamsInformation, scoresOfAllKnockout, indexRun) {
-  let indexRuns = indexRun;
-  let indexsRunning = [0, 3, 2, 1, 4, 7, 6, 5, 0, 3, 2, 1, 0, 1];
+/* function saveToDB(teamsInformation, scoresOfAllKnockout, indexsRunning) {
+  let indexRuns = 0;
 
   teamsInformation.map(teamInformation => {
     let score = new Score(scoresOfAllKnockout[indexsRunning[indexRuns++]]);

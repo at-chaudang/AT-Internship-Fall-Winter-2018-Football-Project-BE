@@ -1,4 +1,4 @@
-module.exports = function(teamsInformationOfTwelve, flag) {
+module.exports = function(teamsInformationOfTwelve, flag, splice = 2) {
   let teamsInformation = [];
 
   if (!flag) {
@@ -22,10 +22,9 @@ module.exports = function(teamsInformationOfTwelve, flag) {
     // Get information of 2 teams that have highest winner number and score nummber.
     teamsInformation.sort((a, b) => {
       return (b.points - a.points) || (b.winner - a.winner) || (b.score - a.score);
-    }).splice(2);
+    }).splice(splice);
   } else {
-    let indexRound = 2;
-    for (let i = 0; i < indexRound; i++) {
+    for (let i = 0; i < 2; i++) {
       teamsInformation.push({
         // _scoresEachGroup[i] = teamsInformationOfTwelve
         tournamentTeamId: teamsInformationOfTwelve[i].tournament_team_id ? teamsInformationOfTwelve[i].tournament_team_id._id : null,

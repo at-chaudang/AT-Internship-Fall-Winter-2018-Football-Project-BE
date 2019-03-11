@@ -157,7 +157,7 @@ module.exports = {
 						let responsingData = [];
 						scoresByGroupName.map((_scoresEachGroup) => {
 							let teamsInformationOfTwelve = utilities.calcScore(_scoresEachGroup);
-							utilities.getTopTeams(teamsInformationOfTwelve, 0).map(teamsInformation => {
+							utilities.getTopTeams(teamsInformationOfTwelve, 0, 4).map(teamsInformation => {
 								responsingData.push(teamsInformation);
 							});
 						})
@@ -268,13 +268,13 @@ module.exports = {
 									position: position,
 									code: scores[i].tournament_team_id ? (flag ? scores[i].tournament_team_id.team_id.code : scores[j].tournament_team_id.team_id.code) : null,
 									logo: scores[i].tournament_team_id ? (flag ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}`) : '../../../assets/images/default-image.png',
-									score: scores[i].score
+									score: flag ? scores[i].score : scores[j].score
 								}, {
 										label,
 										position: ++position,
 										code: scores[j].tournament_team_id ? (flag ? scores[j].tournament_team_id.team_id.code : scores[i].tournament_team_id.team_id.code) : null,
 										logo: scores[j].tournament_team_id ? (flag ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}`) : '../../../assets/images/default-image.png',
-										score: scores[j].score
+										score: flag ? scores[j].score : scores[i].score
 									});
 							}
 						}
@@ -302,7 +302,7 @@ module.exports = {
 				});
 			});
 		});
-		callback(null, 200);
+		callback(null, body.tournament_id);
 	},
 	getNextMatch: (callback) => {
 		Match.find({ start_at: { $gt: Date.now() } }).sort({ date: 1}).limit(7)
