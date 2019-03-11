@@ -3,7 +3,8 @@ module.exports = function(scores) {
     scoresOfAllTables: [],
     scoresOfAllQuaterFinal: [],
     scoresOfAllSemiFinal: [],
-    scoresOfAllFinal: []
+    scoresOfAllFinal: [],
+    scoresOfAllFinal32: []
   }
 
   scores.map(score => {
@@ -13,8 +14,10 @@ module.exports = function(scores) {
       scoresBySorted.scoresOfAllQuaterFinal.push(score);
     } else if (score.match_id.round < 4) {
       scoresBySorted.scoresOfAllSemiFinal.push(score)
-    } else {
+    } else if (score.match_id.round < 5) {
       scoresBySorted.scoresOfAllFinal.push(score)
+    } else {
+      scoresBySorted.scoresOfAllFinal32.push(score);
     }
   })
 
@@ -27,6 +30,14 @@ module.exports = function(scores) {
   });
 
   scoresBySorted.scoresOfAllSemiFinal.sort((a, b) => {
+    return a.match_id.round > b.match_id.round ? 1 : -1;
+  });
+
+  scoresBySorted.scoresOfAllFinal.sort((a, b) => {
+    return a.match_id.round > b.match_id.round ? 1 : -1;
+  });
+
+  scoresBySorted.scoresOfAllFinal32.sort((a, b) => {
     return a.match_id.round > b.match_id.round ? 1 : -1;
   });
 

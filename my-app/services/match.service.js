@@ -235,6 +235,11 @@ module.exports = {
 				})
 			.then(
 				scores => {
+					scores.sort((a, b) => {
+						return a.match_id.round - b.match_id.round
+					});
+					
+					let flag = scores.length > 16 ? true : false;
 					let result = [];
 					let winner = {};
 					let ptk = pbk = pck = position = 0;
@@ -261,19 +266,20 @@ module.exports = {
 								result.push({
 									label,
 									position: position,
-									code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
-									logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
+									code: scores[i].tournament_team_id ? (flag ? scores[i].tournament_team_id.team_id.code : scores[j].tournament_team_id.team_id.code) : null,
+									logo: scores[i].tournament_team_id ? (flag ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}`) : '../../../assets/images/default-image.png',
 									score: scores[i].score
 								}, {
 										label,
 										position: ++position,
-										code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
-										logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
+										code: scores[j].tournament_team_id ? (flag ? scores[j].tournament_team_id.team_id.code : scores[i].tournament_team_id.team_id.code) : null,
+										logo: scores[j].tournament_team_id ? (flag ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}`) : '../../../assets/images/default-image.png',
 										score: scores[j].score
 									});
 							}
 						}
 					}
+
 					Tournament.find({ _id: tournamentId }, (err, tournament) => {
 						if (err) throw err;
 						callback(null, {
@@ -299,12 +305,12 @@ module.exports = {
 		callback(null, 200);
 	},
 	getNextMatch: (callback) => {
-		Match.find({ start_at: { $gt: Date.now() } })
+		Match.find({ start_at: { $gt: Date.now() } }).sort({ date: 1}).limit(7)
 			.then(
 				matches => {
 					let matchesIds = matches.map(match => match._id);
 					return Score.find({ match_id: { $in: matchesIds }, tournament_team_id: { $ne: null } })
-						.populate({ path: 'tournament_team_id match_id', populate: { path: 'tournamentId team_id' } }).limit(14);
+						.populate({ path: 'tournament_team_id match_id', populate: { path: 'tournamentId team_id' } });
 				})
 			.then(
 				scores => {
@@ -338,7 +344,7 @@ module.exports = {
 											secondTeam_score_prediction: prediction.length ? prediction[1].score_prediction : '',
 										}
 									});
-									if (result.length == scores.length / 2) {
+									if (result.length === scores.length / 2) {
 										callback(null, result);
 									}
 								});
