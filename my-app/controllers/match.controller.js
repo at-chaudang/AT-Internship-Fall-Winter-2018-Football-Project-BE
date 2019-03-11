@@ -27,6 +27,13 @@ module.exports = {
       res.json(callback);
     })
   },
+  showTopTeamsByTournament: (req, res) => {
+    const tournamentId = req.params.tournamentId;
+    matchService.getTopTeamsByGroup(tournamentId, (err, callback) => {
+      if (err) throw err;
+      res.json(callback);
+    })
+  },
   showBracketByTournament: (req, res) => {
     const tournamentId = req.params.tournamentId;
     matchService.getBracketByTournament(tournamentId, (err, callback) => {

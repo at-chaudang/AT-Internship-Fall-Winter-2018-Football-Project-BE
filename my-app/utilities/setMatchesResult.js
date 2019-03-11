@@ -1,81 +1,70 @@
 const Score = require('../models/score.model');
+const getTopTeams = require('../utilities/getTopTeams');
+const calcScore = require('../utilities/calcScore');
+const sortKindOfMatches = require('../utilities/sortKindOfMatches');
+const sortByGroup = require('../utilities/sortByGroup');
 
-module.exports = function (data) {
-  let indexsRunning = [0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0];
+module.exports = function (scores) {
+  let indexsRunning = [0, 3, 2, 1, 4, 7, 5, 6, 8, 11, 10, 9, 12, 15, 13, 14];
   let indexRun = 0;
+  
+  let { scoresOfAllTables, scoresOfAllQuaterFinal, scoresOfAllSemiFinal, scoresOfAllFinal } = sortKindOfMatches(scores);
 
-  data.map((scoresByGroups, scoresByGroupsKey) => {
-    // Loop through each tables
-    scoresByGroups.map((_scoresEachGroup, _indexScoresEachGroup) => {
-      // Find out whether each table's match is set or not.
-      let unSetKnockOut = _scoresEachGroup.filter(score => {
-        return score.score === null
-      })
-      if (!unSetKnockOut.length) {
+  let unSetQuarterFinal = scoresOfAllQuaterFinal.filter(score => (score.score === null));
+  if (unSetQuarterFinal.length) {
+    let unSetAllKnockOut = scores.filter(score => (score.score === null && score.match_id.round === 1));
+    if (unSetAllKnockOut.length) {
+      let scoresByGroupName = sortByGroup(scoresOfAllTables, false);
+      scoresByGroupName.map((_scoresEachGroup) => {
         let teamsInformation = [];
-        // Sort 12 scores by each team, each 3 scores for 1 team.
-        _scoresEachGroup.sort((a, b) => {
-          return a.tournament_team_id > b.tournament_team_id ? 1 : -1;
-        });
-        // Separate scores into 4 groups by each team to get scores and winners.
-        if (!scoresByGroupsKey) {
-          for (let i = 0; i < 4; i++) {
-            let totalGoals = winner = 0;
-            for (let j = i * 3; j < i * 3 + 3; j++) {
-              totalGoals += +_scoresEachGroup[j].score;
-              winner += +_scoresEachGroup[j].winner;
-            }
-            teamsInformation.push({
-              team: _scoresEachGroup[i * 3],
-              score: totalGoals,
-              winner: winner
-            });
-          }
-          // Get information of 2 teams that have highest winner number and score nummber.
-          teamsInformation.sort((a, b) => {
-            return (b.winner - a.winner) || (b.score - a.score);
-          }).splice(2);
-        } else {
-          let indexRound = (scoresByGroupsKey !== 1) ? 2 : 1;
-          for (let i = 0; i < indexRound; i++) {
-            teamsInformation.push({
-              team: _scoresEachGroup[i],
-              score: +_scoresEachGroup[i].score,
-              winner: +_scoresEachGroup[i].winner,
-            });
-          }
-          teamsInformation.sort((a, b) => {
-            return (b.winner - a.winner) || (b.score - a.score);
-          }).splice(1);
-        }
-
-        let indexSuffixScore = _indexScoresEachGroup + 1;
-        if (!!scoresByGroupsKey && indexSuffixScore > 2) indexSuffixScore -= 2;
-        if (!!scoresByGroupsKey && indexSuffixScore > 2) { 
-          indexSuffixScore -= 2 
-        }
-        // Loop to set to inner rounds.
-        for (let i = 0, p = Promise.resolve(); i < teamsInformation.length; i++) {
-          p = p.then(_ => new Promise(resolve => {
-            let match_id = teamsInformation[i].team.match_id._id;
-            if (!teamsInformation[i].score) {
-              Score.find({ match_id: match_id }, (err, scores) => {
-                if (err) throw err;
-                scores[indexsRunning[indexRun]].tournament_team_id = teamsInformation[i].team.tournament_team_id._id;
-                scores[indexsRunning[indexRun]].home = !indexSuffixScore;
-                scores[indexsRunning[indexRun++]].save((error) => {
-                  if (error) throw error;
-                  indexSuffixScore++;
-                });
-                if (indexSuffixScore === 3 || indexSuffixScore === 5) {
-                  indexSuffixScore -= 2;
-                };
-              });
-              resolve();
-            }
-          }))
-        }
+        let teamsInformationOfTwelve = calcScore(_scoresEachGroup);
+        teamsInformation = getTopTeams(teamsInformationOfTwelve, 0);
+  
+        teamsInformation.map(teamInformation => {
+          let indexsRunnings = indexsRunning[indexRun++];
+          let score = new Score(scoresOfAllQuaterFinal[indexsRunnings]);
+          score.tournament_team_id = teamInformation.tournamentTeamId;
+          score.save(err => { if (err) throw err });
+        })
+      })
+    }
+  } else {
+    let unSetSemiFinal = scoresOfAllSemiFinal.filter(score => (score.score === null));
+    if (unSetSemiFinal.length) {
+      let scoresByQuaterFinal = sortByGroup(scoresOfAllQuaterFinal, false);
+      let indexsRunning = [0, 1, 2, 3, 4, 5, 6, 7];
+      let indexRun = 0;
+      scoresByQuaterFinal.map((_scoresEachGroup) => {
+        let teamsInformation = getTopTeams(_scoresEachGroup, 1);
+        teamsInformation.map(teamInformation => {
+          let indexsRunnings = indexsRunning[indexRun++];
+          let score = new Score(scoresOfAllSemiFinal[indexsRunnings]);
+          score.tournament_team_id = teamInformation.tournamentTeamId;
+          score.save(err => { if (err) throw err });
+        })
+      });
+    } else {
+      let _unSetSemiFinal = scoresOfAllSemiFinal.filter(score => (score.score !== null));
+      if (!_unSetSemiFinal.length) { 
+        let scoresBySemiFinal = sortByGroup(scoresOfAllSemiFinal);
+        scoresBySemiFinal.map((_scoresEachGroup, index) => {
+          let teamInformation = getTopTeams(_scoresEachGroup, 2)[0];
+          let score = new Score(scoresOfAllFinal[index]);
+          score.tournament_team_id = teamInformation.tournamentTeamId;
+          score.save(err => { if (err) throw err });
+        })
       }
-    });
-  });
+    }
+  }
 }
+
+/* function saveToDB(teamsInformation, scoresOfAllKnockout, indexRun) {
+  let indexRuns = indexRun;
+  let indexsRunning = [0, 3, 2, 1, 4, 7, 6, 5, 0, 3, 2, 1, 0, 1];
+
+  teamsInformation.map(teamInformation => {
+    let score = new Score(scoresOfAllKnockout[indexsRunning[indexRuns++]]);
+    score.tournament_team_id = teamInformation.tournamentTeamId;
+    score.save(err => {if (err) throw err});
+  })
+} */
