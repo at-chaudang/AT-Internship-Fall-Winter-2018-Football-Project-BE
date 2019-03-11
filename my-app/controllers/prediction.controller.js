@@ -15,7 +15,14 @@ module.exports = {
   },
   show: (req, res) => {
     const id = req.params.id;
-    predictionService.getPrediction(id, (err, callback) => {
+    predictionService.getAllPrediction(id, (err, callback) => {
+      if (err) throw err;
+      res.json(callback);
+    });
+  },
+  top: (req, res) => {
+    const id = req.params.id;
+    predictionService.getTopPredictionUser(id, (err, callback) => {
       if (err) throw err;
       res.json(callback);
     });
@@ -38,6 +45,12 @@ module.exports = {
     predictionService.deletePrediction(req.params.id, (err, callback) => {
       if (err) throw err;
       res.json(callback);
+    });
+  },
+  deleteByUser: (req, res) => {
+    predictionService.deletePredictionByUser(req.params.id, (err, callback) => {
+      if (err) throw err;
+      res.json(402);
     });
   }
 }

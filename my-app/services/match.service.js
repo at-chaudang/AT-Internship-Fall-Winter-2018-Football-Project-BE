@@ -18,8 +18,8 @@ module.exports = {
 						for (let j = i + 1; j < scores.length; j++) {
 							if (scores[i].match_id === scores[j].match_id) {
 								result.push({
-									tournamentName: scores[i].match_id.tournamentId.name,
-									id: scores[i].match_id._id,
+									tournamentName: scores[i].match_id ? scores[i].match_id.tournamentId.name : null,
+									id: scores[i].match_id ? scores[i].match_id._id : null,
 									firstTeam: {
 										id: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id._id : null,
 										code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
@@ -32,7 +32,7 @@ module.exports = {
 										logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : null,
 										score: scores[j].score
 									},
-									start_at: scores[j].match_id.start_at
+									start_at: scores[j].match_id ? scores[j].match_id.start_at : null
 								});
 							}
 						}
@@ -181,7 +181,7 @@ module.exports = {
 					let result = [];
 					let scoresLength = scores.length;
 
-					utilities.setMatchesResult(scores);
+					// utilities.setMatchesResult(scores);
 
 					for (let i = 0; i < scoresLength; i++) {
 						for (let j = i + 1; j < scoresLength; j++) {
@@ -194,6 +194,7 @@ module.exports = {
 										group: scores[i].tournament_team_id ? scores[i].tournament_team_id.groupName : null,
 										start_at: scores[i].match_id.start_at,
 										firstTeam: {
+											firstTournamentTeamId: scores[i].tournament_team_id ? scores[i].tournament_team_id._id : null,
 											firstTeamId: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id._id : '',
 											code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
 											logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
@@ -201,6 +202,7 @@ module.exports = {
 											winner: scores[i].winner
 										},
 										secondTeam: {
+											secondTournamentTeamId: scores[j].tournament_team_id ? scores[j].tournament_team_id._id : null,
 											secondTeamId: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id._id : '',
 											code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
 											logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
@@ -331,6 +333,7 @@ module.exports = {
 										start_at: scores[i].match_id.start_at,
 										prediction: {
 											is_predicted: prediction.length ? true : false,
+											user_id: prediction.length ? prediction[0].user_id : null,
 											firstTeam_score_prediction: prediction.length ? prediction[0].score_prediction : '',
 											secondTeam_score_prediction: prediction.length ? prediction[1].score_prediction : '',
 										}
