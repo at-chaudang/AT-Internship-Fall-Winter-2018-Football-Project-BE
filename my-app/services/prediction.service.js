@@ -16,6 +16,7 @@ module.exports = {
           if (predictions.length) {
             predictions.map((prediction, i) => {
               prediction.score_prediction = body.scorePrediction[i],
+              prediction.date = Date.now(),
               prediction.tournament_team_id = body.tournament_team_id[i];
               prediction.save((error) => {
                 if (error) throw error;
@@ -26,7 +27,7 @@ module.exports = {
               p = p.then(_ => new Promise(resolve => {
                 new Prediction({
                   match_id: body.match_id,
-                  date: body.date,
+                  date: Date.now(),
                   user_id: body.user_id,
                   score_prediction: body.scorePrediction[i],
                   tournament_team_id: body.tournament_team_id[i]
@@ -75,6 +76,12 @@ module.exports = {
                       logo: predictions[j].tournament_team_id ? `../../../assets/images/${predictions[j].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
                       score: predictions[j].score_prediction,
                     },
+                    prediction: {
+											is_predicted: predictions.length ? true : false,
+											user_id: predictions.length ? predictions[i].user_id : null,
+											firstTeam_score_prediction: predictions.length ? predictions[i].score_prediction : '',
+											secondTeam_score_prediction: predictions.length ? predictions[j].score_prediction : '',
+										}
                   });
                   if (result.length === predictionsLengh / 2) {
                     callback(null, result);
@@ -101,7 +108,7 @@ module.exports = {
             predictions[i].score_prediction === firstScore && 
             predictions[i + 1].score_prediction === secondScore
           ) {
-            topUsers.push(predictions[i].user_id);
+            topUsers.push({date: predictions[i].date, user: predictions[i].user_id});
           }
           if (topUsers.length === 3) return;
         }

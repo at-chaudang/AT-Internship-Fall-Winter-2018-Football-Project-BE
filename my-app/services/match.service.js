@@ -181,7 +181,7 @@ module.exports = {
 					let result = [];
 					let scoresLength = scores.length;
 
-					// utilities.setMatchesResult(scores);
+					utilities.setMatchesResult(scores);
 
 					for (let i = 0; i < scoresLength; i++) {
 						for (let j = i + 1; j < scoresLength; j++) {

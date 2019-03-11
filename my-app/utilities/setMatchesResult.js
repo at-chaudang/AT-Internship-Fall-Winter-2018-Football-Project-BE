@@ -13,7 +13,7 @@ module.exports = function (scores) {
   let unSetQuarterFinal = scoresOfAllQuaterFinal.filter(score => (score.score === null));
   if (unSetQuarterFinal.length) {
     let unSetAllKnockOut = scores.filter(score => (score.score === null && score.match_id.round === 1));
-    if (!unSetAllKnockOut.length) {
+    if (unSetAllKnockOut.length) {
       let scoresByGroupName = sortByGroup(scoresOfAllTables, false);
       scoresByGroupName.map((_scoresEachGroup) => {
         let teamsInformation = [];
@@ -44,15 +44,16 @@ module.exports = function (scores) {
         })
       });
     } else {
-      let scoresBySemiFinal = sortByGroup(scoresOfAllSemiFinal);
-      scoresBySemiFinal.map((_scoresEachGroup, index) => {
-        let teamsInformation = getTopTeams(_scoresEachGroup, 2);
-        teamsInformation.map((teamInformation) => {
+      let _unSetSemiFinal = scoresOfAllSemiFinal.filter(score => (score.score !== null));
+      if (!_unSetSemiFinal.length) { 
+        let scoresBySemiFinal = sortByGroup(scoresOfAllSemiFinal);
+        scoresBySemiFinal.map((_scoresEachGroup, index) => {
+          let teamInformation = getTopTeams(_scoresEachGroup, 2)[0];
           let score = new Score(scoresOfAllFinal[index]);
           score.tournament_team_id = teamInformation.tournamentTeamId;
           score.save(err => { if (err) throw err });
         })
-      })
+      }
     }
   }
 }
