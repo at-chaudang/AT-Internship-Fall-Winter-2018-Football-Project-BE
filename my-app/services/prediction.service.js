@@ -64,6 +64,7 @@ module.exports = {
                     group: predictions[i].tournament_team_id ? predictions[i].tournament_team_id.groupName : null,
                     start_at: predictions[i].match_id.start_at,
                     firstTeam: {
+                      firstTournamentTeamId: predictions[i].tournament_team_id ? predictions[i].tournament_team_id._id : null,
                       firstTeamId: predictions[i].tournament_team_id ? predictions[i].tournament_team_id.team_id._id : '',
                       code: predictions[i].tournament_team_id ? predictions[i].tournament_team_id.team_id.code : null,
                       logo: predictions[i].tournament_team_id ? `../../../assets/images/${predictions[i].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
@@ -71,6 +72,7 @@ module.exports = {
                       score_prediction: score[i] ? score[i].score : null
                     },
                     secondTeam: {
+                      secondTournamentTeamId: predictions[j].tournament_team_id ? predictions[j].tournament_team_id._id : null,
                       secondTeamId: predictions[j].tournament_team_id ? predictions[j].tournament_team_id.team_id._id : '',
                       code: predictions[j].tournament_team_id ? predictions[j].tournament_team_id.team_id.code : null,
                       logo: predictions[j].tournament_team_id ? `../../../assets/images/${predictions[j].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
@@ -80,7 +82,8 @@ module.exports = {
 											is_predicted: predictions.length ? true : false,
 											user_id: predictions.length ? predictions[i].user_id : null,
 											firstTeam_score_prediction: predictions.length ? predictions[i].score_prediction : '',
-											secondTeam_score_prediction: predictions.length ? predictions[j].score_prediction : '',
+                      secondTeam_score_prediction: predictions.length ? predictions[j].score_prediction : '',
+                      date: predictions.length ? predictions[j].date : null
 										}
                   });
                   if (result.length === predictionsLengh / 2) {
