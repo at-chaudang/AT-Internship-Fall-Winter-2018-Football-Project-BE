@@ -8,6 +8,7 @@ const tournamentRouter = require('./tournament.route');
 const predictionRouter = require('./prediction.route');
 const tournamentTeamRouter = require('./tournament_team.route');
 const teamRouter = require('./team.route');
+const statictisRouter = require('./statistics.route');
 
 const verifyToken = require('../middleware/verifyToken');
 
@@ -22,5 +23,6 @@ router.use('/tournaments', tournamentRouter);
 router.use('/predictions', predictionRouter);
 router.use('/tournamentTeams', tournamentTeamRouter);
 router.use('/teams', teamRouter);
+router.use('/statistics', statictisRouter);
 
 module.exports = router;

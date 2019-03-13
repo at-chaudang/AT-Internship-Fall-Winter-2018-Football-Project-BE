@@ -301,12 +301,12 @@ module.exports = {
 		callback(null, 200);
 	},
 	getNextMatch: (callback) => {
-		Match.find({ start_at: { $gt: Date.now() } })
+		Match.find({ start_at: { $gt: Date.now() } }).sort({ start_at: 1 }).limit(7)
 			.then(
 				matches => {
 					let matchesIds = matches.map(match => match._id);
 					return Score.find({ match_id: { $in: matchesIds }, tournament_team_id: { $ne: null } })
-						.populate({ path: 'tournament_team_id match_id', populate: { path: 'tournamentId team_id' } }).limit(14);
+						.populate({ path: 'tournament_team_id match_id', populate: { path: 'tournamentId team_id' } });
 				})
 			.then(
 				scores => {
