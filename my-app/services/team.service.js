@@ -2,7 +2,6 @@ const Team = require('../models/team.model');
 
 module.exports = {
   selectAll: (callback) => {
-    console.log(123);
     Team.find(callback);
   },
   createTeam: (body, callback) => {
