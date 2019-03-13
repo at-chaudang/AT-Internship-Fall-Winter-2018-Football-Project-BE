@@ -3,7 +3,8 @@ module.exports = function(scores) {
     scoresOfAllTables: [],
     scoresOfAllQuaterFinal: [],
     scoresOfAllSemiFinal: [],
-    scoresOfAllFinal: []
+    scoresOfAllFinal: [],
+    scoresOfAllFinal32: []
   }
 
   scores.map(score => {
@@ -13,22 +14,24 @@ module.exports = function(scores) {
       scoresBySorted.scoresOfAllQuaterFinal.push(score);
     } else if (score.match_id.round < 4) {
       scoresBySorted.scoresOfAllSemiFinal.push(score)
-    } else {
+    } else if (score.match_id.round < 5) {
       scoresBySorted.scoresOfAllFinal.push(score)
+    } else {
+      scoresBySorted.scoresOfAllFinal32.push(score);
     }
   })
 
-  scoresBySorted.scoresOfAllTables.sort((a, b) => {
-    return a.tournament_team_id.groupName > b.tournament_team_id.groupName ? 1 : -1;
-  });
-
-  scoresBySorted.scoresOfAllQuaterFinal.sort((a, b) => {
-    return a.match_id.round > b.match_id.round ? 1 : -1;
-  });
-
-  scoresBySorted.scoresOfAllSemiFinal.sort((a, b) => {
-    return a.match_id.round > b.match_id.round ? 1 : -1;
-  });
+  Object.keys(scoresBySorted).forEach((key, index) => {
+    if (!index) {
+      scoresBySorted[key].sort((a, b) => {
+        return a.tournament_team_id.groupName > b.tournament_team_id.groupName ? 1 : -1;
+      });
+    } else {
+      scoresBySorted[key].sort((a, b) => {
+        return a.match_id.round > b.match_id.round ? 1 : -1;
+      });
+    }
+  })
 
   return scoresBySorted;
 }

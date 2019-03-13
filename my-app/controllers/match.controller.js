@@ -20,6 +20,12 @@ module.exports = {
       res.json(callback);
     })
   },
+  showDonePercentMatches: (req, res) => {
+    matchService.showDonePercentMatches((err, callback) => {
+      if (err) throw err;
+      res.json(callback);
+    })
+  },
   showAllByTournament: (req, res) => {
     const tournamentId = req.params.tournamentId;
     matchService.getAllByTournament(tournamentId, (err, callback) => {
@@ -50,7 +56,7 @@ module.exports = {
   update: (req, res) => {
     matchService.updateMatch(req.body, (err, callback) => {
       if (err) throw err;
-      res.json(callback);
+      res.redirect(`/api/matches/show/${callback}`);
     })
   },
   delete: (req, res) => {

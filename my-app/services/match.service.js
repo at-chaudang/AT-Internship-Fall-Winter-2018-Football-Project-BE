@@ -10,7 +10,7 @@ const Operator = require('../models/tournament_team.model');
 
 module.exports = {
 	selectAll: (callback) => {
-		Score.find({ "tournament_team_id": { $ne: null }}).populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id tournamentId' } })
+		Score.find({ "tournament_team_id": { $ne: null } }).populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id tournamentId' } })
 			.then(
 				scores => {
 					let result = [];
@@ -41,9 +41,33 @@ module.exports = {
 				}
 			)
 	},
+	showDonePercentMatches: (callback) => {
+		Tournament.find({}, (err, tours) => {
+			if (err) throw err;
+			let responsedData = []
+			let tourLength = tours.length;
+			tours.map((tour, index) => {
+				tourInfo = [];
+				Match.find({ tournamentId: tour._id }, ((err, matches) => {
+					if (err) throw err;
+					let matchesIds = matches.map(match => match._id);
+					Score.find({ match_id: { $in: matchesIds } }, (err, scores) => {
+						if (err) throw err;
+						let scoredScores = scores.filter(score => score.score);
+						let percent = scoredScores.length / scores.length * 100;
+						let status = percent === 100 ? 1 : 0;
+						responsedData.push({ name: tour.name, start_at: tour.start_at, percent: percent, status: status });
+						if ((tourLength - 1) === index) {
+							callback(null, responsedData);
+						}
+					})
+				}))
+			})
+		})
+	},
 	createMatch: async (body, callback) => {
 		let { tournamentId, groups } = JSON.parse(body.data);
-		let tournament = await Tournament.findOne({ '_id': tournamentId })
+		let tournament = await Tournament.findById(tournamentId)
 		let startDate = new Date(tournament.start_at - 48 * 3600000).setHours(20, 0, 0, 0);
 		groups.map(group => {
 			utilities.generateMatchPair(group.tournamentTeamIds, false).map(pair => {
@@ -157,7 +181,7 @@ module.exports = {
 						let responsingData = [];
 						scoresByGroupName.map((_scoresEachGroup) => {
 							let teamsInformationOfTwelve = utilities.calcScore(_scoresEachGroup);
-							utilities.getTopTeams(teamsInformationOfTwelve, 0).map(teamsInformation => {
+							utilities.getTopTeams(teamsInformationOfTwelve, 0, 4).map(teamsInformation => {
 								responsingData.push(teamsInformation);
 							});
 						})
@@ -199,7 +223,7 @@ module.exports = {
 											code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
 											logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
 											score: scores[i].score,
-											winner: scores[i].winner
+											winners: scores[i].winner
 										},
 										secondTeam: {
 											secondTournamentTeamId: scores[j].tournament_team_id ? scores[j].tournament_team_id._id : null,
@@ -207,7 +231,7 @@ module.exports = {
 											code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
 											logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
 											score: scores[j].score,
-											winner: scores[j].winner
+											winners: scores[j].winner
 										},
 										prediction: {
 											isAllow: (new Date(scores[i].match_id.start_at).getTime() < Date.now()) ? true : false,
@@ -235,6 +259,11 @@ module.exports = {
 				})
 			.then(
 				scores => {
+					scores.sort((a, b) => {
+						return a.match_id.round - b.match_id.round
+					});
+
+					let flag = scores.length > 16 ? true : false;
 					let result = [];
 					let winner = {};
 					let ptk = pbk = pck = position = 0;
@@ -261,19 +290,20 @@ module.exports = {
 								result.push({
 									label,
 									position: position,
-									code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
-									logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
-									score: scores[i].score
+									code: scores[i].tournament_team_id ? (flag ? scores[i].tournament_team_id.team_id.code : scores[j].tournament_team_id.team_id.code) : null,
+									logo: scores[i].tournament_team_id ? (flag ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}`) : '../../../assets/images/default-image.png',
+									score: flag ? scores[i].score : scores[j].score
 								}, {
 										label,
 										position: ++position,
-										code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
-										logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
-										score: scores[j].score
+										code: scores[j].tournament_team_id ? (flag ? scores[j].tournament_team_id.team_id.code : scores[i].tournament_team_id.team_id.code) : null,
+										logo: scores[j].tournament_team_id ? (flag ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}`) : '../../../assets/images/default-image.png',
+										score: flag ? scores[j].score : scores[i].score
 									});
 							}
 						}
 					}
+
 					Tournament.find({ _id: tournamentId }, (err, tournament) => {
 						if (err) throw err;
 						callback(null, {
@@ -298,7 +328,7 @@ module.exports = {
 				});
 			});
 		});
-		callback(null, 200);
+		callback(null, body.tournament_id);
 	},
 	getNextMatch: (callback) => {
 		Match.find({ start_at: { $gt: Date.now() } }).sort({ start_at: 1 }).limit(7)
@@ -340,7 +370,7 @@ module.exports = {
 											secondTeam_score_prediction: prediction.length ? prediction[1].score_prediction : '',
 										}
 									});
-									if (result.length == scores.length / 2) {
+									if (result.length === scores.length / 2) {
 										callback(null, result);
 									}
 								});
