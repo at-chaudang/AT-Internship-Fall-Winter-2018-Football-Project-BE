@@ -46,6 +46,7 @@ module.exports = {
 			if (err) throw err;
 			let responsedData = []
 			let tourLength = tours.length;
+			if (!tourLength) callback(null);
 			tours.map((tour, index) => {
 				tourInfo = [];
 				Match.find({ tournamentId: tour._id }, ((err, matches) => {
@@ -56,7 +57,7 @@ module.exports = {
 						let scoredScores = scores.filter(score => score.score);
 						let percent = scoredScores.length / scores.length * 100;
 						let status = percent === 100 ? 1 : 0;
-						responsedData.push({ name: tour.name, start_at: tour.start_at, percent: percent, status: status });
+						responsedData.push({ name: tour.name, _id: tour._id, start_at: tour.start_at, percent: percent, status: status });
 						if ((tourLength - 1) === index) {
 							callback(null, responsedData);
 						}
@@ -319,8 +320,9 @@ module.exports = {
 		Score.find({ match_id: body.match_id }, (err, scores) => {
 			if (err) throw err;
 			scores.map((score, index) => {
-				score.tournament_team_id = tournament_team_ids[index];
 				score.start_at = body.start_at;
+				// score.tournament_team_id = null;
+				// score.score = null
 				score.score = body.scorePrediction[index];
 				score.winner = body.winners[index];
 				score.save(err => {

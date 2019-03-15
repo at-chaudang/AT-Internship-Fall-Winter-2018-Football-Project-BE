@@ -20,7 +20,7 @@ module.exports = function (scores) {
     })
   }
 
-  let unSetQuarterFinal = scoresOfAllQuaterFinal.findIndex(score => (score.score === null));
+  let unSetQuarterFinal = scoresOfAllQuaterFinal.filter(score => (score.score === null));
   // Nếu các trận tứ kết hay knockout (với 32 đội) đã được set thì bắt đầu set bán kết hay tứ kết (với 32 đội)
   if (!unSetQuarterFinal.length) {
     let indexsRunning = [0, 1, 2, 3, 4, 5, 6, 7];
