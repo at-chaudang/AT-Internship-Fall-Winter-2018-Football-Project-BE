@@ -101,7 +101,7 @@ module.exports = {
   getTopPredictionUser: async (id, callback) => {
     let scores = await Score.find({ match_id: id, score: { $ne: null } });
     if (scores.length) {
-      let predictions = await Prediction.find({ match_id: id }).sort({ date: -1 }).populate({ path: 'user_id' });
+      let predictions = await Prediction.find({ match_id: id }).populate({ path: 'user_id' });
       if (predictions.length) {
         let firstScore = scores[0].score;
         let secondScore = scores[1].score;
