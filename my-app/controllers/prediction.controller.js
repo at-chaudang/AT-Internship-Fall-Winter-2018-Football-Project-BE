@@ -13,6 +13,12 @@ module.exports = {
       res.json(callback);
     });
   },
+  showAdmin: (req, res) => {
+    predictionService.selectForAdmin((err, callback) => {
+      if (err) throw err;
+      res.json(callback);
+    });
+  },
   show: (req, res) => {
     const id = req.params.id;
     predictionService.getAllPrediction(id, (err, callback) => {

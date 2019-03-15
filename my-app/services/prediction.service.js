@@ -6,6 +6,59 @@ module.exports = {
   selectAll: (callback) => {
     Prediction.find(callback);
   },
+  selectForAdmin: (callback) => {
+    Prediction.find({}).populate({ path: 'match_id tournament_team_id', populate: { path: 'tournamentId team_id' } })
+    .then(predictions => {
+      if (predictions == ![]) predictions = null;
+      if (predictions) {
+        let result = [];
+        let predictionsLengh = predictions.length;
+
+        for (let i = 0; i < predictionsLengh; i++) {
+          for (let j = i + 1; j < predictionsLengh; j++) {
+            if (predictions[i].match_id._id === predictions[j].match_id._id) {
+              Score.find({ match_id: predictions[i].match_id._id }, (err, score) => {
+                if (err) throw err;
+                result.push({
+                  match_id: predictions[i].match_id,
+                  round: predictions[i].match_id.round,
+                  group: predictions[i].tournament_team_id ? predictions[i].tournament_team_id.groupName : null,
+                  start_at: predictions[i].match_id.start_at,
+                  firstTeam: {
+                    firstTournamentTeamId: predictions[i].tournament_team_id ? predictions[i].tournament_team_id._id : null,
+                    firstTeamId: predictions[i].tournament_team_id ? predictions[i].tournament_team_id.team_id._id : '',
+                    code: predictions[i].tournament_team_id ? predictions[i].tournament_team_id.team_id.code : null,
+                    logo: predictions[i].tournament_team_id ? `../../../assets/images/${predictions[i].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
+                    score: predictions[i].score_prediction,
+                    score_prediction: score[i] ? score[i].score : null
+                  },
+                  secondTeam: {
+                    secondTournamentTeamId: predictions[j].tournament_team_id ? predictions[j].tournament_team_id._id : null,
+                    secondTeamId: predictions[j].tournament_team_id ? predictions[j].tournament_team_id.team_id._id : '',
+                    code: predictions[j].tournament_team_id ? predictions[j].tournament_team_id.team_id.code : null,
+                    logo: predictions[j].tournament_team_id ? `../../../assets/images/${predictions[j].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
+                    score: predictions[j].score_prediction,
+                  },
+                  prediction: {
+                    is_predicted: predictions.length ? true : false,
+                    user_id: predictions.length ? predictions[i].user_id : null,
+                    firstTeam_score_prediction: predictions.length ? predictions[i].score_prediction : '',
+                    secondTeam_score_prediction: predictions.length ? predictions[j].score_prediction : '',
+                    date: predictions.length ? predictions[j].date : null
+                  }
+                });
+                if (result.length === predictionsLengh / 2) {
+                  callback(null, result);
+                }
+              })
+            }
+          }
+        }
+      } else {
+        callback(null, null);
+      }
+    });
+  },
   createPrediction: (body, callback) => {
     Match.findOne({ _id: body.match_id }, (err, match) => {
       if (err) throw err;
