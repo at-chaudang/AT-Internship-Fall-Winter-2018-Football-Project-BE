@@ -60,7 +60,7 @@ module.exports = {
 						responsedData.push({ name: tour.name, _id: tour._id, start_at: tour.start_at, percent: percent, status: status });
 						if ((tourLength - 1) === index) {
 							callback(null, responsedData);
-						} 
+						}
 					})
 				}))
 			})
@@ -88,7 +88,7 @@ module.exports = {
 							tournament_team_id: pair[j],
 							home: !j,
 							winner: null,
-							score: 1
+							score: null
 						});
 						score.save(err => {
 							if (err) throw err;
