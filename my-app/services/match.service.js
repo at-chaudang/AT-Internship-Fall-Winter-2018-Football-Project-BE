@@ -320,12 +320,14 @@ module.exports = {
 			)
 	},
 	updateMatch: (body, callback) => {
+		Match.findOne({_id: body.match_id}, (err, match) => {
+			if (err) throw err;
+			match.start_at = body.start_at;
+			match.save(err => {if (err) throw err})
+		});
 		Score.find({ match_id: body.match_id }, (err, scores) => {
 			if (err) throw err;
 			scores.map((score, index) => {
-				score.start_at = body.start_at;
-				// score.tournament_team_id = null;
-				// score.score = null
 				score.score = body.scorePrediction[index];
 				score.winner = body.winners[index];
 				score.save(err => {
