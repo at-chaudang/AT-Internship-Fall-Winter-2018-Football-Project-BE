@@ -119,80 +119,135 @@ module.exports = {
 				})
 			.then(
 				scores => {
-					// let scoresTables = scores
+					let result = [];
+					let scoresLength = scores.length
+
+					// Sắp xếp theo từng trận tứ kết.
+					// let scoresByQuaterFinal = scores.filter(score => (score.match_id.round > 1 && score.match_id.round < 3))
+					// .sort((a, b) => {
+					// 	return a.match_id.round > b.match_id.round ? 1 : -1;
+					// });
+
+					// let scoresCuaToanBoVongTuKetTheoNhom = [];
+					// for (let i = 0; i < scoresByQuaterFinal.length - 1; i++) {
+					// 	let scoresCuaMoiTranTuKet = [];
+					// 	for (let j = i; j + 3; j++) {
+					// 		scoresCuaMoiTranTuKet.push(scoresByQuaterFinal[j]);
+					// 	}
+					// 	scoresCuaToanBoVongTuKetTheoNhom.push(scoresCuaMoiTranTuKet);
+					// 	i+= 2;
+					// }
+
+					// Sắp xếp theo tên bảng.
+					// let scoresCuaToanBoVongBang = scores
 					// 	.filter(score => score.match_id.round === 1)
 					// 	.sort((a, b) => {
 					// 		return a.tournament_team_id.groupName > b.tournament_team_id.groupName ? 1 : -1;
 					// 	});
 					
-					// let groupScores = [];
-					// for (let i = 0; i < scoresTables.length - 1; i++) {
-					// 	let eachGroupScores = []
+					// // Chia nhóm theo bên bảng.
+					// let scoresCuaToanBoBangTheoNhom = [];
+					// for (let i = 0; i < scoresCuaToanBoVongBang.length - 1; i++) {
+					// 	let scoresCuaMoiBang = []
 					// 	for (let j = i; j < i + 12; j++) {
-					// 		eachGroupScores.push(scoresTables[j]);
+					// 		scoresCuaMoiBang.push(scoresCuaToanBoVongBang[j]);
 					// 	}
-					// 	groupScores.push(eachGroupScores);
-					// 	i+= 11;
+					// 	scoresCuaToanBoBangTheoNhom.push(scoresCuaMoiBang);
+					// 	i += 11;
 					// }
-					
-					// let groupScore = [];
-					// groupScores.map(group => {
-					// 	let unSetKnockOut = group.filter(score => {
-					// 		return score.score === null
-					// 	})
-					// 	if (!unSetKnockOut.length) {
-					// 		group.sort((a, b) => {
-					// 			return a.tournament_team_id > b.tournament_team_id ? 1 : -1;
-					// 		});
-
-					// 		// i === teams length and j === scores(3)
-					// 		for (let i = 0; i < 4; i++) {
-					// 			let scoreTemp = 0;
-					// 			for (let j = i * 3; j < i * 3 + 3; j++) {
-					// 				scoreTemp += +group[j].score;
-					// 			}
-					// 			// if ()
-					// 			st1 = scoreTemp;
-					// 			groupScore.push(scoreTemp);
-					// 		}
-					// 	}
-					// })
-					
-
-					let result = [];
-					let scoresLength = scores.length;
 					for (let i = 0; i < scoresLength; i++) {
 						for (let j = i + 1; j < scoresLength; j++) {
 							if (scores[i].match_id._id === scores[j].match_id._id) {
-									Prediction.find({ match_id: scores[i].match_id._id }, (err, prediction) => {
-										if (err) throw err;
-										result.push({
-											id: scores[i].match_id._id,
-											round: scores[i].match_id.round,
-											group: scores[i].tournament_team_id ? scores[i].tournament_team_id.groupName : null,
-											start_at: scores[i].match_id.start_at,
-											firstTeam: {
-												firstTeamId: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id._id : '',
-												code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
-												logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
-												score: scores[i].score
-											},
-											secondTeam: {
-												secondTeamId: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id._id : '',
-												code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
-												logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
-												score: scores[j].score
-											},
-											prediction: {
-												is_predicted: prediction.length ? true : false,
-												firstTeam_score_prediction: prediction.length ? prediction[0].score_prediction : '',
-												secondTeam_score_prediction: prediction.length ? prediction[1].score_prediction : '',
-											}
-										});
-										if (result.length == scoresLength / 2) {
-											callback(null, result);
+								Prediction.find({ match_id: scores[i].match_id._id }, (err, prediction) => {
+									if (err) throw err;
+									result.push({
+										id: scores[i].match_id._id,
+										round: scores[i].match_id.round,
+										group: scores[i].tournament_team_id ? scores[i].tournament_team_id.groupName : null,
+										start_at: scores[i].match_id.start_at,
+										firstTeam: {
+											firstTeamId: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id._id : '',
+											code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
+											logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
+											score: scores[i].score
+										},
+										secondTeam: {
+											secondTeamId: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id._id : '',
+											code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
+											logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
+											score: scores[j].score
+										},
+										prediction: {
+											isAllow: (new Date(scores[i].match_id.start_at).getTime() < Date.now()) ? true : false,
+											is_predicted: prediction.length ? true : false,
+											firstTeam_score_prediction: prediction.length ? prediction[0].score_prediction : '',
+											secondTeam_score_prediction: prediction.length ? prediction[1].score_prediction : '',
 										}
-									})
+									});
+									if (result.length === scoresLength / 2) {
+										// Lặp từng mỗi nhóm bảng.
+										// scoresCuaToanBoBangTheoNhom.map((_scoresCuaMoiBang, _indexscoresCuaMoiBang) => {
+										// 	// Tìm xem trong mỗi bảng có trận mô chưa set ko.
+										// 	let unSetKnockOut = _scoresCuaMoiBang.filter(score => {
+										// 		return score.score === null
+										// 	})
+										// 	if (!unSetKnockOut.length) {
+										// 		let thongTinCacDoi = [];
+
+										// 		// Sắp 12 scores lại theo từng đội, cứ 3 scores đầu là cho 1 đội.
+										// 		_scoresCuaMoiBang.sort((a, b) => {
+										// 			return a.tournament_team_id > b.tournament_team_id ? 1 : -1;
+										// 		});
+
+										// 		// Tiếp tục chia scores ra thành 4 nhóm theo mỗi đội để lấy tỉ số và độ ưu tiên thằng thua
+										// 	// mối nhóm 3 scores cho mỗi đội.
+										// 		// i === teams length and j === scores(3)
+										// 		for (let i = 0; i < 4; i++) {
+										// 			let tongBanThang = winner = 0;
+										// 			for (let j = i * 3; j < i * 3 + 3; j++) {
+										// 				tongBanThang += +_scoresCuaMoiBang[j].score;
+										// 				winner += +_scoresCuaMoiBang[j].winner;
+										// 			}
+										// 			thongTinCacDoi.push({
+										// 				team: _scoresCuaMoiBang[i * 3],
+										// 				score: tongBanThang,
+										// 				winner: winner
+										// 			});
+										// 		}
+
+										// 		// Lấy thông tin 2 đội có số winners và scores cao nhất.
+										// 		thongTinCacDoi.sort((a, b) => {
+										// 			return (b.winner - a.winner) || (b.score - a.score);
+										// 		}).splice(2);
+
+										// 		let indexScore = _indexscoresCuaMoiBang + 1
+										// 		let indexTemp = 1;
+										// 		// Lặp để set vào từng trận tứ kết.
+										// 		thongTinCacDoi.map(thongTinMoiDoi => {
+										// 			let resultIndex = result.findIndex(match => {
+										// 				return match.round === +(`2.${indexScore}`);
+										// 			});
+
+										// 			let teamTemp = result[resultIndex][Object.keys(result[resultIndex])[indexTemp + 3]];
+										// 			teamTemp[(Object.keys(teamTemp)[0])] = thongTinMoiDoi.team._id;
+										// 			teamTemp.code = thongTinMoiDoi.team.tournament_team_id.team_id.code;
+										// 			teamTemp.logo = thongTinMoiDoi.team.tournament_team_id.team_id.logo;
+										// 			indexTemp++;
+										// 			indexScore++;
+										// 			if (indexScore === 3 || indexScore === 5) { 
+										// 				indexScore-= 2;
+										// 			};
+										// 		});
+										// 	}
+										// })
+
+										// scoresCuaToanBoVongTuKetTheoNhom.map((_scoresCuaMoiTranTuKet, _indexscoresCuaMoiTranTuKet) => {
+											
+										// })
+
+										callback(null, result);
+									}
+								})
 							}
 						}
 					}
@@ -293,18 +348,21 @@ module.exports = {
 						for (let j = i + 1; j < scores.length; j++) {
 							if (scores[i].match_id === scores[j].match_id) {
 								result.push({
+									id: scores[i].match_id._id,
 									round: scores[i].match_id.round,
 									firstTeam: {
+										firstTeamId: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id._id : '',
 										code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
 										logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
 										score: scores[i].score
 									},
 									secondTeam: {
+										secondTeamId: scores[i].tournament_team_id ? scores[j].tournament_team_id.team_id._id : '',
 										code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
 										logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/logo-img.png',
 										score: scores[j].score
 									},
-									start_at: scores[i].match_id.start_at
+									start_at: scores[i].match_id.start_at,
 								});
 							}
 						}
@@ -317,5 +375,10 @@ module.exports = {
 	},
 	deleteMatch: (id, callback) => {
 		Match.deleteOne({ _id: id }, callback);
+	},
+	deleteByTournament: (id, callback) => {
+		Match.deleteMany({ tournamentId: id}, (err) => {
+			if (err) throw err;
+		})
 	}
 }
