@@ -269,7 +269,7 @@ module.exports = {
 
 					let flag = scores.length > 16 ? true : false;
 					let result = [];
-					let winner = {};
+					let winner;
 					let ptk = pbk = pck = position = 0;
 
 					for (let i = 0; i < scores.length; i++) {
@@ -289,15 +289,45 @@ module.exports = {
 									label = 'ck';
 									position = ++pck;
 									++pck;
+
+									if (flag) {
+										if ((scores[i].match_id.round == 5.1)) {
+											if (scores[i].winner) {
+												winner = {
+													code: scores[i].tournament_team_id.team_id.code,
+													logo: scores[i].tournament_team_id.team_id.logo
+												};
+											} else {
+												winner = {
+													code: scores[j].tournament_team_id.team_id.code,
+													logo: scores[j].tournament_team_id.team_id.logo
+												};
+											}
+										}
+									} else if ((scores[i].match_id.round == 4.1)) {
+										if (scores[i].winner) {
+											winner = {
+												code: scores[i].tournament_team_id.team_id.code,
+												logo: scores[i].tournament_team_id.team_id.logo
+											};
+										} else {
+											winner = {
+												code: scores[j].tournament_team_id.team_id.code,
+												logo: scores[j].tournament_team_id.team_id.logo
+											};
+										}
+									}
 								}
 
-								result.push({
-									label,
-									position: position,
-									code: scores[i].tournament_team_id ? (flag ? scores[i].tournament_team_id.team_id.code : scores[j].tournament_team_id.team_id.code) : null,
-									logo: scores[i].tournament_team_id ? (flag ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}`) : '../../../assets/images/default-image.png',
-									score: flag ? scores[i].score : scores[j].score
-								}, {
+								result.push(
+									{
+										label,
+										position: position,
+										code: scores[i].tournament_team_id ? (flag ? scores[i].tournament_team_id.team_id.code : scores[j].tournament_team_id.team_id.code) : null,
+										logo: scores[i].tournament_team_id ? (flag ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}`) : '../../../assets/images/default-image.png',
+										score: flag ? scores[i].score : scores[j].score
+									},
+									{
 										label,
 										position: ++position,
 										code: scores[j].tournament_team_id ? (flag ? scores[j].tournament_team_id.team_id.code : scores[i].tournament_team_id.team_id.code) : null,
@@ -320,10 +350,10 @@ module.exports = {
 			)
 	},
 	updateMatch: (body, callback) => {
-		Match.findOne({_id: body.match_id}, (err, match) => {
+		Match.findOne({ _id: body.match_id }, (err, match) => {
 			if (err) throw err;
 			match.start_at = body.start_at;
-			match.save(err => {if (err) throw err})
+			match.save(err => { if (err) throw err })
 		});
 		Score.find({ match_id: body.match_id }, (err, scores) => {
 			if (err) throw err;
