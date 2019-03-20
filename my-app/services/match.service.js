@@ -47,23 +47,26 @@ module.exports = {
 			let responsedData = []
 			let tourLength = tours.length;
 			if (!tourLength) callback(null);
-			tours.map((tour, index) => {
-				tourInfo = [];
-				Match.find({ tournamentId: tour._id }, ((err, matches) => {
-					if (err) throw err;
-					let matchesIds = matches.map(match => match._id);
-					Score.find({ match_id: { $in: matchesIds } }, (err, scores) => {
+			for (let i = 0, p = Promise.resolve(); i < tours.length; i++) {
+				p = p.then(_ => new Promise(resolve => {
+					tourInfo = [];
+					Match.find({ tournamentId: tours[i]._id }, ((err, matches) => {
 						if (err) throw err;
-						let scoredScores = scores.filter(score => score.score);
-						let percent = scoredScores.length / scores.length * 100;
-						let status = percent === 100 ? 1 : 0;
-						responsedData.push({ name: tour.name, _id: tour._id, start_at: tour.start_at, percent: percent, status: status });
-						if ((tourLength - 1) === index) {
-							callback(null, responsedData);
-						}
-					})
-				}))
-			})
+						let matchesIds = matches.map(match => match._id);
+						Score.find({ match_id: { $in: matchesIds } }, (err, scores) => {
+							if (err) throw err;
+							let scoredScores = scores.filter(score => score.score);
+							let percent = scoredScores.length / scores.length * 100;
+							let status = percent === 100 ? 1 : 0;
+							responsedData.push({ name: tours[i].name, _id: tours[i]._id, start_at: tours[i].start_at, percent: Math.round(percent), status: status });
+							resolve();
+							if (responsedData.length == tours.length) {
+								callback(null, responsedData);
+							}
+						})
+					}))
+				}));
+			}
 		})
 	},
 	createMatch: async (body, callback) => {
@@ -317,12 +320,14 @@ module.exports = {
 			)
 	},
 	updateMatch: (body, callback) => {
+		Match.findOne({_id: body.match_id}, (err, match) => {
+			if (err) throw err;
+			match.start_at = body.start_at;
+			match.save(err => {if (err) throw err})
+		});
 		Score.find({ match_id: body.match_id }, (err, scores) => {
 			if (err) throw err;
 			scores.map((score, index) => {
-				score.start_at = body.start_at;
-				// score.tournament_team_id = null;
-				// score.score = null
 				score.score = body.scorePrediction[index];
 				score.winner = body.winners[index];
 				score.save(err => {
