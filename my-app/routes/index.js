@@ -9,6 +9,7 @@ const predictionRouter = require('./prediction.route');
 const tournamentTeamRouter = require('./tournament_team.route');
 const teamRouter = require('./team.route');
 const statictisRouter = require('./statistics.route');
+const homeRouter = require('./home.route');
 
 const verifyToken = require('../middleware/verifyToken');
 
@@ -18,6 +19,7 @@ const verifyToken = require('../middleware/verifyToken');
 
 router.use('/', apiRouter);
 router.use('/users', verifyToken, userRouter);
+router.use('/home', homeRouter);
 router.use('/matches', matchRouter);
 router.use('/tournaments', tournamentRouter);
 router.use('/predictions', predictionRouter);
