@@ -297,7 +297,7 @@ module.exports = {
 													code: scores[i].tournament_team_id.team_id.code,
 													logo: scores[i].tournament_team_id.team_id.logo
 												};
-											} else {
+											} else if (scores[j].winner) {
 												winner = {
 													code: scores[j].tournament_team_id.team_id.code,
 													logo: scores[j].tournament_team_id.team_id.logo
@@ -310,7 +310,7 @@ module.exports = {
 												code: scores[i].tournament_team_id.team_id.code,
 												logo: scores[i].tournament_team_id.team_id.logo
 											};
-										} else {
+										} else if (scores[j].winner) {
 											winner = {
 												code: scores[j].tournament_team_id.team_id.code,
 												logo: scores[j].tournament_team_id.team_id.logo
