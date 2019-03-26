@@ -16,7 +16,7 @@ module.exports = {
 					let result = [];
 					for (let i = 0; i < scores.length; i++) {
 						for (let j = i + 1; j < scores.length; j++) {
-							if (scores[i].match_id === scores[j].match_id) {
+							if (scores[i].match_id === scores[j].match_id && scores[j].tournament_team_id) {
 								result.push({
 									tournamentName: scores[i].match_id ? scores[i].match_id.tournamentId.name : null,
 									id: scores[i].match_id ? scores[i].match_id._id : null,
@@ -209,7 +209,7 @@ module.exports = {
 					let result = [];
 					let scoresLength = scores.length;
 
-					utilities.setMatchesResult(scores);
+					let tablesFlags = utilities.checkSetKnockOut(scores);
 
 					for (let i = 0; i < scoresLength; i++) {
 						for (let j = i + 1; j < scoresLength; j++) {
@@ -245,7 +245,7 @@ module.exports = {
 										}
 									});
 									if (result.length === scoresLength / 2) {
-										callback(null, result);
+										callback(null, [result, tablesFlags]);
 									}
 								})
 							}

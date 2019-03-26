@@ -166,7 +166,7 @@ module.exports = {
           ) {
             topUsers.push({date: predictions[i].date, user: predictions[i].user_id});
           }
-          if (topUsers.length === 3) return;
+          // if (topUsers.length === 3) return;
         }
         callback(null, topUsers);
       } else {  
