@@ -177,7 +177,7 @@ module.exports = {
 						.populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id' } });
 				})
 			.then(
-				scores => {
+				scores => {					
 					let unSetAllKnockOut = scores.filter(score => (score.score === null && score.match_id.round === 1));
 					if (!unSetAllKnockOut.length) {
 						let { scoresOfAllTables } = utilities.sortKindOfMatches(scores);

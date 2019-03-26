@@ -1,12 +1,6 @@
-const mongoose = require('mongoose');
-
 const Match = require('../models/match.model');
 const Score = require('../models/score.model');
-const Team = require('../models/team.model');
 const Prediction = require('../models/prediction.model');
-const Tournament = require('../models/tournament.model');
-const utilities = require('../utilities/index');
-const Operator = require('../models/tournament_team.model');
 const oneYear = 3600*24*365*1000;
 
 module.exports = {

@@ -11,6 +11,9 @@ const tournamentTeamSchema = mongoose.Schema({
   },
   groupName: {
     type: String
+  },
+  position: {
+    type: String
   }
 });
 

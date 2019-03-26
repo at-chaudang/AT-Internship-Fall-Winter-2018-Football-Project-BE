@@ -48,7 +48,8 @@ module.exports = {
         let tournamentTeamInstance = new Operator({
           tournament_id: tournamentId,
           team_id: teamIds[j],
-          groupName: groupNames[i]
+          groupName: groupNames[i],
+          position: null
         });
         _tournamentTeamIds.push(tournamentTeamInstance._id);
         tournamentTeamInstance.save(err => {

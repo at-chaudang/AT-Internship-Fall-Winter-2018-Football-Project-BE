@@ -16,18 +16,14 @@ module.exports = function (teamsInformationOfTwelve, flag, splice = 2) {
         tournamentTeamId: teamsInformationOfTwelve[i * 3].tournamentTeamId,
         winner: winners,
         points: points,
-        goals: totalGoals
+        goals: totalGoals,
+        position: i%4 + 1,
       });
     }
     // Get information of 2 teams that have highest winner number and score nummber.
     teamsInformation.sort((a, b) => {
-      return (b.points - a.points) || (b.winner - a.winner) || (b.score - a.score);
+      return (a.position - b.position) || (b.points - a.points) || (b.winner - a.winner) || (b.score - a.score);
     }).splice(splice);
-    teamsInformation.map(
-      (x, i) => {
-        x.position = i%4 + 1;
-      }
-    )
   } else {
     for (let i = 0; i < 2; i++) {
       teamsInformation.push({
