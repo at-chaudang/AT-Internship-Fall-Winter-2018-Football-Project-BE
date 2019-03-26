@@ -1,4 +1,4 @@
-module.exports = function(teamsInformationOfTwelve, flag, splice = 2) {
+module.exports = function (teamsInformationOfTwelve, flag, splice = 2) {
   let teamsInformation = [];
 
   if (!flag) {
@@ -23,6 +23,11 @@ module.exports = function(teamsInformationOfTwelve, flag, splice = 2) {
     teamsInformation.sort((a, b) => {
       return (b.points - a.points) || (b.winner - a.winner) || (b.score - a.score);
     }).splice(splice);
+    teamsInformation.map(
+      (x, i) => {
+        x.position = i%4 + 1;
+      }
+    )
   } else {
     for (let i = 0; i < 2; i++) {
       teamsInformation.push({
