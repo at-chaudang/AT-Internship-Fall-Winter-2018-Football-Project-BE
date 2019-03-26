@@ -5,6 +5,7 @@ const calcScore = require('./calcScore');
 const getTopTeams = require('./getTopTeams');
 const sortKindOfMatches = require('./sortKindOfMatches');
 const sortByGroup = require('./sortByGroup');
+const checkSetKnockOut = require('./checkSetKnockOut')
 
 module.exports = {
   generateMatchPair,
@@ -13,5 +14,6 @@ module.exports = {
   calcScore,
   getTopTeams,
   sortKindOfMatches,
-  sortByGroup
+  sortByGroup,
+  checkSetKnockOut,
 }

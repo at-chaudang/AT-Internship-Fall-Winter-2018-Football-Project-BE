@@ -209,7 +209,7 @@ module.exports = {
 					let result = [];
 					let scoresLength = scores.length;
 
-					utilities.setMatchesResult(scores);
+					let tablesFlags = utilities.checkSetKnockOut(scores);
 
 					for (let i = 0; i < scoresLength; i++) {
 						for (let j = i + 1; j < scoresLength; j++) {
@@ -245,7 +245,7 @@ module.exports = {
 										}
 									});
 									if (result.length === scoresLength / 2) {
-										callback(null, result);
+										callback(null, [result, tablesFlags]);
 									}
 								})
 							}
