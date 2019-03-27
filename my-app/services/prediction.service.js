@@ -168,13 +168,10 @@ module.exports = {
           }
           // if (topUsers.length === 3) return;
         }
-        callback(null, topUsers);
-      } else {  
-        callback(null, null);
+        return callback(null, topUsers);
       }
-    } else {
-      callback(null, null);
     }
+    callback(null, null);
   },
   updatePrediction: (id, body, callback) => {
     Prediction.findByIdAndUpdate(id, body, callback);

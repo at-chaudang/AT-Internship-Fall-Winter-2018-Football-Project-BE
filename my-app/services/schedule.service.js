@@ -1,15 +1,46 @@
+const TournamentTeam = require('../models/tournament_team.model');
 const Match = require('../models/match.model');
 const Score = require('../models/score.model');
-const Prediction = require('../models/prediction.model');
-const TournamentTeam = require('../models/tournament_team.model');
-const utilities = require('../utilities/index');
-const Operator = require('../models/tournament_team.model');
-const oneYear = 3600 * 24 * 365 * 1000;
+const information = [
+  {
+    groupName: 'A',
+    position: [2.1, 2.2],
+  },
+  {
+    groupName: 'B',
+    position: [2.2, 2.1],
+  },
+  {
+    groupName: 'C',
+    position: [2.3, 2.4],
+  },
+  {
+    groupName: 'D',
+    position: [2.4, 2.3],
+  },
+  {
+    groupName: 'E',
+    position: [2.5, 2.6],
+  },
+  {
+    groupName: 'F',
+    position: [2.6, 2.5],
+  },
+  {
+    groupName: 'G',
+    position: [2.7, 2.8],
+  },
+  {
+    groupName: 'H',
+    position: [2.8, 2.7],
+  }
+]
 
 module.exports = {
   setKnockout: async (body, callback) => {
     await body.map(
-      x => {
+      // x is team object, y is operator.
+      (x, index) => {
         TournamentTeam.findById(
           x.tournamentTeamId._id, (err, y) => {
             if (err) throw err;
@@ -28,8 +59,20 @@ module.exports = {
                 });
             }
           }
-        )
-      })
+        );
+        if (index < 2 ) {
+          let infor = information.find(inf => inf.groupName === x.tournamentTeamId.groupName);
+
+          Match.findOne({ tournamentId: x.tournamentTeamId.tournament_id, round: infor.position[index] }, (err, match) => {
+            if (err) throw err;
+            Score.find({ match_id: match.id }, (err, scores) => {
+              if (err) throw err;
+              scores[index].tournament_team_id = x.tournamentTeamId._id;
+              scores[index].save(err => { if (err) throw err; });
+            });
+          });
+        }
+      });
       callback(null, null);
   },
 }

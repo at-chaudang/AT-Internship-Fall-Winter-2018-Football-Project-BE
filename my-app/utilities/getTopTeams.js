@@ -17,7 +17,7 @@ module.exports = function (teamsInformationOfTwelve, flag, splice = 2) {
         winner: winners,
         points: points,
         goals: totalGoals,
-        position: i%4 + 1,
+        // position: i%4 + 1,
       });
     }
     // Get information of 2 teams that have highest winner number and score nummber.
