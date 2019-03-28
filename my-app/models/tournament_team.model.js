@@ -14,6 +14,9 @@ const tournamentTeamSchema = mongoose.Schema({
   },
   position: {
     type: String
+  },
+  isKnockoutSet: {
+    type: Boolean
   }
 });
 

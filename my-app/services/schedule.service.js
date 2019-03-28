@@ -44,35 +44,67 @@ module.exports = {
         TournamentTeam.findById(
           x.tournamentTeamId._id, (err, y) => {
             if (err) throw err;
+            // let conditions = {_id: y._id};
+            // let update = "{ $set: { name: 'jason bourne' }}";
+            // TournamentTeam.update(conditions, update, options, callback);
             if (y.position) {
-              y.position = x.position
+              y.position = x.position;
+              y.isKnockoutSet = x.isKnockoutSet;
               y.save(err => {
                 if (err) throw err;
               });
             } else {
               y.update(
                 {
-                  position: x.position
+                  position: x.position,
+                  isKnockoutSet: x.isKnockoutSet
                 },
                 err => {
                   if (err) throw err;
                 });
-            }
+            };
           }
         );
-        if (index < 2 ) {
+        if (index < 2) {
           let infor = information.find(inf => inf.groupName === x.tournamentTeamId.groupName);
 
           Match.findOne({ tournamentId: x.tournamentTeamId.tournament_id, round: infor.position[index] }, (err, match) => {
             if (err) throw err;
             Score.find({ match_id: match.id }, (err, scores) => {
               if (err) throw err;
+
               scores[index].tournament_team_id = x.tournamentTeamId._id;
               scores[index].save(err => { if (err) throw err; });
+              if (index) {
+                callback(null, 200);
+              }
             });
           });
         }
       });
-      callback(null, null);
   },
-}
+};
+
+function setKnockoutSupport() {
+  Match.find({ tournamentId: tournamentId })
+    .then(
+      matches => {
+        let matchesIds = matches.map(match => match._id);
+        return Score.find({ match_id: { $in: matchesIds } })
+          .populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id' } });
+      })
+    .then(
+      scores => {
+          let { scoresOfAllTables } = utilities.sortKindOfMatches(scores);
+          let scoresByGroupName = utilities.sortByGroup(scoresOfAllTables, false);
+          let responsingData = [];
+          scoresByGroupName.map((_scoresEachGroup) => {
+            let teamsInformationOfTwelve = utilities.calcScore(_scoresEachGroup);
+            utilities.getTopTeams(teamsInformationOfTwelve, 0, 4).map(teamsInformation => {
+              responsingData.push(teamsInformation);
+            });
+          })
+          callback(null, responsingData);
+        }
+    );
+};

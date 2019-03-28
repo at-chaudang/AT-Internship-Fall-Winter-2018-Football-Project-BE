@@ -49,7 +49,7 @@ module.exports = {
           tournament_id: tournamentId,
           team_id: teamIds[j],
           groupName: groupNames[i],
-          position: null
+          // position: null
         });
         _tournamentTeamIds.push(tournamentTeamInstance._id);
         tournamentTeamInstance.save(err => {

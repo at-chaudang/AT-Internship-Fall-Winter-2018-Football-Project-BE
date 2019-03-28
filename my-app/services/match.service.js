@@ -73,15 +73,29 @@ module.exports = {
 		let { tournamentId, groups } = JSON.parse(body.data);
 		let tournament = await Tournament.findById(tournamentId)
 		let startDate = new Date(tournament.start_at - 48 * 3600000).setHours(20, 0, 0, 0);
-		groups.map(group => {
-			utilities.generateMatchPair(group.tournamentTeamIds, false).map(pair => {
-				new Date(startDate).getHours() === 18 ? startDate += 7200000 : startDate += (46 * 3600000);
+		let dateRandom = [];
+		let size = groups.length * 6;
+		for (let index = 0; index < size; index++) {
+			dateRandom[index] = new Date(startDate).getHours() === 18 ? startDate += 7200000 : startDate += (46 * 3600000);
+		}
+		// xáo trộn date ======================
+		let temp = [];
+		for (let index = 0; index < groups.length; index++) {
+      DateIndex = index;
+      for (let j = 0; j < 6; j++) {
+          temp.push(dateRandom[DateIndex]);
+          DateIndex += 4;
+        }
+		}
+		// =====================
+		groups.map((group, groupIndex) => {
+			utilities.generateMatchPair(group.tournamentTeamIds, false).map((pair, i) => {
 				let match = new Match({
 					play_at: null,
 					round: 1,
 					tournamentId: mongoose.Types.ObjectId(tournamentId),
 					desc: null,
-					start_at: startDate
+					start_at: temp[groupIndex * 6 + i]
 				});
 				match.save((error) => {
 					if (error) { throw error };
@@ -186,6 +200,10 @@ module.exports = {
 						scoresByGroupName.map((_scoresEachGroup) => {
 							let teamsInformationOfTwelve = utilities.calcScore(_scoresEachGroup);
 							utilities.getTopTeams(teamsInformationOfTwelve, 0, 4).map(teamsInformation => {
+								// console.log(
+								// 	'teamsInformation',
+								// 	JSON.stringify(teamsInformation, null, 4)
+								// );
 								responsingData.push(teamsInformation);
 							});
 						})
@@ -221,6 +239,7 @@ module.exports = {
 										round: scores[i].match_id.round,
 										group: scores[i].tournament_team_id ? scores[i].tournament_team_id.groupName : null,
 										start_at: scores[i].match_id.start_at,
+										isKnockoutSet: scores[i].tournament_team_id ? scores[i].tournament_team_id.isKnockoutSet : false,
 										firstTeam: {
 											firstTournamentTeamId: scores[i].tournament_team_id ? scores[i].tournament_team_id._id : null,
 											firstTeamId: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id._id : '',
