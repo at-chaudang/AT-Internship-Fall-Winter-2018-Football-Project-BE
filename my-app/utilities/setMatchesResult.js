@@ -4,13 +4,15 @@ const getTopTeams = require('../utilities/getTopTeams');
 const sortKindOfMatches = require('../utilities/sortKindOfMatches');
 const sortByGroup = require('../utilities/sortByGroup');
 
-module.exports = function (scores) {
+module.exports = function (scores, groupName) {
   let { scoresOfAllTables, scoresOfAllQuaterFinal, scoresOfAllSemiFinal, scoresOfAllFinal, scoresOfAllFinal32 } = sortKindOfMatches(scores);
 
   // Nếu các trận bán kết hay tứ kết (với 32 đội) đã được set thì mới bắt đầu set chung kết hay bán kết (với 32 đội)
   let _unSetSemiFinal = scoresOfAllSemiFinal.filter(score => (score.score === null));
   let _unSetFinal = scoresOfAllFinal.filter(score => (score.score === null));
-  if (!_unSetSemiFinal.length) {
+  // if (!_unSetSemiFinal.length) {
+  
+  if (1) {
     let scoresBySemiFinal = sortByGroup(scoresOfAllSemiFinal);
     scoresBySemiFinal.map((_scoresEachGroup, index) => {
       let teamInformation = getTopTeams(_scoresEachGroup, 2)[0];
@@ -22,7 +24,7 @@ module.exports = function (scores) {
 
   let unSetQuarterFinal = scoresOfAllQuaterFinal.filter(score => (score.score === null));
   // Nếu các trận tứ kết hay knockout (với 32 đội) đã được set thì bắt đầu set bán kết hay tứ kết (với 32 đội)
-  if (!unSetQuarterFinal.length) {
+  if (1) {
     let indexsRunning = [0, 1, 2, 3, 4, 5, 6, 7];
     let indexRun = 0;
     let scoresByQuaterFinal = sortByGroup(scoresOfAllQuaterFinal, false);
@@ -56,7 +58,7 @@ module.exports = function (scores) {
   // }
 
   // Nếu các trận bán kết (với 32 đội) đã được set thì bắt đầu set chung kết.
-  if (!_unSetFinal.length) {
+  if (1) {
     let scoresByFinal = sortByGroup(scoresOfAllFinal);
     scoresByFinal.map((_scoresEachGroup, index) => {
       let teamInformation = getTopTeams(_scoresEachGroup, 2)[0];

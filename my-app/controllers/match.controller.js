@@ -56,7 +56,7 @@ module.exports = {
   update: (req, res) => {
     matchService.updateMatch(req.body, (err, callback) => {
       if (err) throw err;
-      res.redirect(`/api/matches/show/${callback}`);
+      res.json(callback);
     })
   },
   delete: (req, res) => {

@@ -5,11 +5,6 @@ module.exports = function (teamsInformationOfTwelve, flag, splice = 2) {
     // Separate scores into 4 groups by each team to get scores and winners.
     for (let i = 0; i < 4; i++) {
       let totalGoals = winners = points = 0;
-      let position = 0;
-      // console.log(
-      //   'teamsInformationOfTwelve',
-      //   JSON.stringify(teamsInformationOfTwelve, null, 4)
-      // );
 
       // Sort 12 scores by each team, each 3 scores for 1 team.
       for (let j = i * 3; j < i * 3 + 3; j++) {
@@ -23,13 +18,21 @@ module.exports = function (teamsInformationOfTwelve, flag, splice = 2) {
         points: points,
         goals: totalGoals,
         position: teamsInformationOfTwelve[i * 3].tournamentTeamId.position
-        // position: i%4 + 1,
       });
     }
     // Get information of 2 teams that have highest winner number and score nummber.
     teamsInformation.sort((a, b) => {
       return (a.position - b.position) || (b.points - a.points) || (b.winner - a.winner) || (b.score - a.score);
     }).splice(splice);
+    teamsInformation = teamsInformation.map(
+      (x, i) => {
+        if (x.position) return x;
+        x.position = i%4 + 1;
+        return x;
+      }
+    );
+    console.log(teamsInformation);
+    
   } else {
     for (let i = 0; i < 2; i++) {
       teamsInformation.push({

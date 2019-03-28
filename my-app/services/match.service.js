@@ -81,11 +81,11 @@ module.exports = {
 		// xáo trộn date ======================
 		let temp = [];
 		for (let index = 0; index < groups.length; index++) {
-      DateIndex = index;
-      for (let j = 0; j < 6; j++) {
-          temp.push(dateRandom[DateIndex]);
-          DateIndex += 4;
-        }
+			DateIndex = index;
+			for (let j = 0; j < 6; j++) {
+				temp.push(dateRandom[DateIndex]);
+				DateIndex += 4;
+			}
 		}
 		// =====================
 		groups.map((group, groupIndex) => {
@@ -191,26 +191,21 @@ module.exports = {
 						.populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id' } });
 				})
 			.then(
-				scores => {					
-					let unSetAllKnockOut = scores.filter(score => (score.score === null && score.match_id.round === 1));
-					if (!unSetAllKnockOut.length) {
-						let { scoresOfAllTables } = utilities.sortKindOfMatches(scores);
-						let scoresByGroupName = utilities.sortByGroup(scoresOfAllTables, false);
-						let responsingData = [];
-						scoresByGroupName.map((_scoresEachGroup) => {
-							let teamsInformationOfTwelve = utilities.calcScore(_scoresEachGroup);
-							utilities.getTopTeams(teamsInformationOfTwelve, 0, 4).map(teamsInformation => {
-								// console.log(
-								// 	'teamsInformation',
-								// 	JSON.stringify(teamsInformation, null, 4)
-								// );
-								responsingData.push(teamsInformation);
-							});
-						})
-						callback(null, responsingData);
-					} else {
-						callback(null, null);
-					}
+				scores => {
+					let { scoresOfAllTables } = utilities.sortKindOfMatches(scores);
+					let scoresByGroupName = utilities.sortByGroup(scoresOfAllTables, false);
+					let responsingData = [];
+					scoresByGroupName.map((_scoresEachGroup) => {
+						let teamsInformationOfTwelve = utilities.calcScore(_scoresEachGroup);
+						utilities.getTopTeams(teamsInformationOfTwelve, 0, 4).map(teamsInformation => {
+							// console.log(
+							// 	'teamsInformation',
+							// 	JSON.stringify(teamsInformation, null, 4)
+							// );
+							responsingData.push(teamsInformation);
+						});
+					})
+					callback(null, responsingData);
 				}
 			)
 	},
@@ -228,6 +223,7 @@ module.exports = {
 					let scoresLength = scores.length;
 
 					let tablesFlags = utilities.checkSetKnockOut(scores);
+					utilities.setMatchesResult(scores);
 
 					for (let i = 0; i < scoresLength; i++) {
 						for (let j = i + 1; j < scoresLength; j++) {
@@ -377,6 +373,8 @@ module.exports = {
 		Score.find({ match_id: body.match_id }, (err, scores) => {
 			if (err) throw err;
 			scores.map((score, index) => {
+				// score.tournament_team_id = null;
+				// score.score = null;				
 				score.score = body.scorePrediction[index];
 				score.winner = body.winners[index];
 				score.save(err => {
@@ -384,7 +382,7 @@ module.exports = {
 				});
 			});
 		});
-		callback(null, body.tournament_id);
+		callback(null, 200);
 	},
 	getNextMatch: (callback) => {
 		Match.find({ start_at: { $gt: Date.now() } }).sort({ start_at: 1 }).limit(7)
