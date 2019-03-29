@@ -215,23 +215,19 @@ module.exports = {
 				matches => {
 					let matchesIds = matches.map(match => match._id);
 					return Score.find({ match_id: { $in: matchesIds } })
-						.populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id' } });
+					.populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id tournamentId' } });
 				})
-			.then(
-				async scores => {
+				.then(
+					async scores => {
+					let tournamentName = scores[0].match_id.tournamentId.name;
 					let result = [];
 					let scoresLength = scores.length;
 
 					let tablesFlags = utilities.checkSetKnockOut(scores);
 					let isSetMatchesResult = await utilities.setMatchesResult(scores);
-    console.log(4);
-
-					if (isSetMatchesResult.err) {
-						console.log(isSetMatchesResult);
+					if (isSetMatchesResult && isSetMatchesResult.err) {
 						console.log('error');
 					} else {
-    console.log(5);
-
 						for (let i = 0; i < scoresLength; i++) {
 							for (let j = i + 1; j < scoresLength; j++) {
 								if (scores[i].match_id._id === scores[j].match_id._id) {
@@ -267,7 +263,7 @@ module.exports = {
 											}
 										});
 										if (result.length === scoresLength / 2) {
-											callback(null, [result, tablesFlags]);
+											callback(null, [tournamentName, result, tablesFlags]);
 										}
 									})
 								}
