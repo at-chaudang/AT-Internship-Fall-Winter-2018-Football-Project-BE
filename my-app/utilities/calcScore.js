@@ -27,7 +27,9 @@ module.exports = function(_scoresEachGroup) {
         firstTeamPoints = 0;
         secondTeamPoints = 3;
       } else {
-        firstTeamPoints = secondTeamPoints = 1;
+        if (scoresEachGroupFirstScore && scoresEachGroupNextScore) {
+          firstTeamPoints = secondTeamPoints = 1;
+        }
       }
     }
 
