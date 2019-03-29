@@ -31,8 +31,6 @@ module.exports = function (teamsInformationOfTwelve, flag, splice = 2) {
         return x;
       }
     );
-    console.log(teamsInformation);
-    
   } else {
     for (let i = 0; i < 2; i++) {
       teamsInformation.push({
