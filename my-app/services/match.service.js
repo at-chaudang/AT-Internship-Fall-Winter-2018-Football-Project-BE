@@ -233,27 +233,47 @@ module.exports = {
 								if (scores[i].match_id._id === scores[j].match_id._id) {
 									Prediction.find({ match_id: scores[i].match_id._id }, (err, prediction) => {
 										if (err) throw err;
+										let team = {};
+
 										result.push({
 											id: scores[i].match_id._id,
 											round: scores[i].match_id.round,
 											group: scores[i].tournament_team_id ? scores[i].tournament_team_id.groupName : null,
 											start_at: scores[i].match_id.start_at,
 											isKnockoutSet: scores[i].tournament_team_id ? scores[i].tournament_team_id.isKnockoutSet : false,
-											firstTeam: {
+											firstTeam: scores[i].home ? {
 												firstTournamentTeamId: scores[i].tournament_team_id ? scores[i].tournament_team_id._id : null,
 												firstTeamId: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id._id : '',
 												code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
 												logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
 												score: scores[i].score,
-												winners: scores[i].winner
+												winners: scores[i].winner,
+												home: true
+											} : {
+												firstTournamentTeamId: scores[j].tournament_team_id ? scores[j].tournament_team_id._id : null,
+												firstTeamId: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id._id : '',
+												code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
+												logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
+												score: scores[j].score,
+												winners: scores[j].winner,
+												home: false
 											},
-											secondTeam: {
+											secondTeam: scores[i].home ? {
 												secondTournamentTeamId: scores[j].tournament_team_id ? scores[j].tournament_team_id._id : null,
 												secondTeamId: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id._id : '',
 												code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
 												logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
 												score: scores[j].score,
-												winners: scores[j].winner
+												winners: scores[j].winner,
+												home: false
+											} : {
+												secondTournamentTeamId: scores[i].tournament_team_id ? scores[i].tournament_team_id._id : null,
+												secondTeamId: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id._id : '',
+												code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
+												logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
+												score: scores[i].score,
+												winners: scores[i].winner,
+												home: true
 											},
 											prediction: {
 												isAllow: (new Date(scores[i].match_id.start_at).getTime() < Date.now()) ? true : false,
@@ -376,11 +396,11 @@ module.exports = {
 		});
 		Score.find({ match_id: body.match_id }, (err, scores) => {
 			if (err) throw err;
-			scores.map((score, index) => {
+			scores.map(score => {
 				// score.tournament_team_id = null;
 				// score.score = null;				
-				score.score = body.scorePrediction[index];
-				score.winner = body.winners[index];
+				score.score = score.home ? body.scorePrediction[0] : body.scorePrediction[1];
+				score.winner = score.home ? body.winners[0] : body.winners[1];
 				score.save(err => {
 					if (err) throw err;
 				});
