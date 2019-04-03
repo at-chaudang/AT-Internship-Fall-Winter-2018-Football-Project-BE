@@ -311,12 +311,12 @@ module.exports = {
 
 									if (flag) {
 										if ((scores[i].match_id.round == 5.1)) {
-											if (scores[i].winner) {
+											if (scores[i].score != null && scores[i].winner) {
 												winner = {
 													code: scores[i].tournament_team_id.team_id.code,
 													logo: scores[i].tournament_team_id.team_id.logo
 												};
-											} else if (scores[j].winner) {
+											} else if (scores[j].score != null && scores[j].winner) {
 												winner = {
 													code: scores[j].tournament_team_id.team_id.code,
 													logo: scores[j].tournament_team_id.team_id.logo

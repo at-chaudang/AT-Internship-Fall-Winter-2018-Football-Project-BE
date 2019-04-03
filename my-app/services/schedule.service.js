@@ -84,27 +84,3 @@ module.exports = {
       });
   },
 };
-
-function setKnockoutSupport() {
-  Match.find({ tournamentId: tournamentId })
-    .then(
-      matches => {
-        let matchesIds = matches.map(match => match._id);
-        return Score.find({ match_id: { $in: matchesIds } })
-          .populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id' } });
-      })
-    .then(
-      scores => {
-          let { scoresOfAllTables } = utilities.sortKindOfMatches(scores);
-          let scoresByGroupName = utilities.sortByGroup(scoresOfAllTables, false);
-          let responsingData = [];
-          scoresByGroupName.map((_scoresEachGroup) => {
-            let teamsInformationOfTwelve = utilities.calcScore(_scoresEachGroup);
-            utilities.getTopTeams(teamsInformationOfTwelve, 0, 4).map(teamsInformation => {
-              responsingData.push(teamsInformation);
-            });
-          })
-          callback(null, responsingData);
-        }
-    );
-};
