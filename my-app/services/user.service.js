@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 
 module.exports = {
   selectAllUser: (callback) => {
-    User.find(callback);
+    User.find().count(callback);
   },
   createUser: (body, callback) => {
     const user = new User(body);
