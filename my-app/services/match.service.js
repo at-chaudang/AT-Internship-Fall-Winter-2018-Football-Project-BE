@@ -168,7 +168,7 @@ module.exports = {
 					if (err) throw err;
 				});
 
-				if (j === 2) {
+				if (j === 1) {
 					callback(null, tournamentId);
 				}
 			}
@@ -213,6 +213,8 @@ module.exports = {
 		Match.find({ tournamentId: tournamentId })
 			.then(
 				matches => {
+					console.log(matches);
+					
 					let matchesIds = matches.map(match => match._id);
 					return Score.find({ match_id: { $in: matchesIds } })
 						.populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id tournamentId' } });
@@ -451,7 +453,7 @@ module.exports = {
 		callback(null, 200);
 	},
 	getNextMatch: (callback) => {
-		Match.find({ start_at: { $gt: Date.now() } }).sort({ start_at: 1 }).limit(7)
+		Match.find({ start_at: { $gt: Date.now() } }).sort({ start_at: 1 }).limit(8)
 			.then(
 				matches => {
 					let matchesIds = matches.map(match => match._id);
