@@ -13,6 +13,7 @@ module.exports = function (scores, groupName) {
   // Nếu các trận tứ kết hay knockout (với 32 đội) đã được set thì bắt đầu set bán kết hay tứ kết (với 32 đội)
   let unSetQuarterFinal = scoresOfAllQuaterFinal.filter(score => (score.score === null));
   if (!unSetQuarterFinal.length && _unSetSemiFinal.length) {
+    // if (1) {
     let indexsRunning = [0, 1, 2, 3, 4, 5, 6, 7];
     let indexRun = 0;
     let scoresByQuaterFinal = sortByGroup(scoresOfAllQuaterFinal, false);
@@ -29,6 +30,8 @@ module.exports = function (scores, groupName) {
     
     return true;
   } else if (!_unSetSemiFinal.length && _unSetFinal.length) {
+  // } else if (1) {
+
     let scoresBySemiFinal = sortByGroup(scoresOfAllSemiFinal);
     scoresBySemiFinal.map((_scoresEachGroup, index) => {
       let teamInformation = getTopTeams(_scoresEachGroup, 2)[0];
@@ -42,6 +45,7 @@ module.exports = function (scores, groupName) {
   } else
   // Nếu các trận bán kết (với 32 đội) đã được set thì bắt đầu set chung kết.
   if (!_unSetFinal.length) {
+    // if (1) {
     let scoresByFinal = sortByGroup(scoresOfAllFinal);
     scoresByFinal.map((_scoresEachGroup, index) => {
       let teamInformation = getTopTeams(_scoresEachGroup, 2)[0];
