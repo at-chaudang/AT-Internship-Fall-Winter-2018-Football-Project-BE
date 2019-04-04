@@ -16,24 +16,35 @@ module.exports = function (scores, groupName) {
     // if (1) {
     let indexsRunning = [0, 1, 2, 3, 4, 5, 6, 7];
     let indexRun = 0;
+
     let scoresByQuaterFinal = sortByGroup(scoresOfAllQuaterFinal, false);
     scoresByQuaterFinal.map((_scoresEachGroup) => {
       let teamsInformation = getTopTeams(_scoresEachGroup, 1);
+
       teamsInformation.map(teamInformation => {
         let indexsRunnings = indexsRunning[indexRun++];
+
+        // Save score by home
+        scoresOfAllSemiFinal[indexsRunnings].home = !(indexsRunnings % 2);
+        //-------------------chau
+
         let score = new Score(scoresOfAllSemiFinal[indexsRunnings]);
         score.tournament_team_id = teamInformation.tournamentTeamId;
         score.save(err => { if (err) throw err });
       })
     });
     console.log(1);
-    
+
     return true;
   } else if (!_unSetSemiFinal.length && _unSetFinal.length) {
-  // } else if (1) {
+    // } else if (1) {
 
     let scoresBySemiFinal = sortByGroup(scoresOfAllSemiFinal);
     scoresBySemiFinal.map((_scoresEachGroup, index) => {
+      // Save score by home
+      scoresOfAllFinal[index].home = !(index % 2);
+      //-------------------chau
+
       let teamInformation = getTopTeams(_scoresEachGroup, 2)[0];
       let score = new Score(scoresOfAllFinal[index]);
       score.tournament_team_id = teamInformation.tournamentTeamId;
@@ -43,20 +54,23 @@ module.exports = function (scores, groupName) {
 
     return true;
   } else
-  // Nếu các trận bán kết (với 32 đội) đã được set thì bắt đầu set chung kết.
-  if (!_unSetFinal.length) {
-    // if (1) {
-    let scoresByFinal = sortByGroup(scoresOfAllFinal);
-    scoresByFinal.map((_scoresEachGroup, index) => {
-      let teamInformation = getTopTeams(_scoresEachGroup, 2)[0];
-      let score = new Score(scoresOfAllFinal32[index]);
-      score.tournament_team_id = teamInformation.tournamentTeamId;
-      score.save(err => { if (err) throw err });
-    })
-    console.log(3);
+    // Nếu các trận bán kết (với 32 đội) đã được set thì bắt đầu set chung kết.
+    if (!_unSetFinal.length) {
+      // if (1) {
+      let scoresByFinal = sortByGroup(scoresOfAllFinal);
+      scoresByFinal.map((_scoresEachGroup, index) => {
+        // Save score by home
+        scoresOfAllFinal32[index].home = !(index % 2);
+        //-------------------chau
+        let teamInformation = getTopTeams(_scoresEachGroup, 2)[0];
+        let score = new Score(scoresOfAllFinal32[index]);
+        score.tournament_team_id = teamInformation.tournamentTeamId;
+        score.save(err => { if (err) throw err });
+      })
+      console.log(3);
 
-    return true;
-  }
+      return true;
+    }
 
 
   // Nếu các trận vòng bảng đã được set thì bắt đầu set tứ kết hay knockout (với 32 đội)

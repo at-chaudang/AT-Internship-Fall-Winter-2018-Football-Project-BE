@@ -105,7 +105,8 @@ module.exports = {
 							tournament_team_id: pair[j],
 							home: !j,
 							winner: null,
-							score: null
+							score: null,
+							// score: 1
 						});
 						score.save(err => {
 							if (err) throw err;
@@ -146,10 +147,12 @@ module.exports = {
 			}
 		}
 
+		// Create finally match
 		new Date(startDate).getHours() === 18 ? startDate += 7200000 : startDate += 46 * 3600000;
 		let match = new Match({
 			play_at: null,
 			round: groups.length === 8 ? 5.1 : 4.2,
+			// round: groups.length === 8 ? 5.1 : 4.1,
 			tournamentId: mongoose.Types.ObjectId(tournamentId),
 			desc: null,
 			start_at: startDate
@@ -213,8 +216,6 @@ module.exports = {
 		Match.find({ tournamentId: tournamentId })
 			.then(
 				matches => {
-					console.log(matches);
-					
 					let matchesIds = matches.map(match => match._id);
 					return Score.find({ match_id: { $in: matchesIds } })
 						.populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id tournamentId' } });
@@ -224,7 +225,10 @@ module.exports = {
 					let tournamentName = scores[0].match_id.tournamentId.name;
 					let result = [];
 					let scoresLength = scores.length;
-
+					// Sort by round
+					scores.sort(
+						(a, b) => (a.match_id.round > b.match_id.round)
+					)
 					let tablesFlags = utilities.checkSetKnockOut(scores);
 					let isSetMatchesResult = await utilities.setMatchesResult(scores);
 					if (isSetMatchesResult && isSetMatchesResult.err) {
@@ -235,8 +239,6 @@ module.exports = {
 								if (scores[i].match_id._id === scores[j].match_id._id) {
 									Prediction.find({ match_id: scores[i].match_id._id }, (err, prediction) => {
 										if (err) throw err;
-										let team = {};
-
 										result.push({
 											id: scores[i].match_id._id,
 											round: scores[i].match_id.round,
@@ -312,7 +314,6 @@ module.exports = {
 					let result = [];
 					let winner;
 					let ptk = pbk = pck = position = 0;
-					let code, logo;
 
 					for (let i = 0; i < scores.length; i++) {
 						for (let j = i + 1; j < scores.length; j++) {
@@ -432,20 +433,22 @@ module.exports = {
 			)
 	},
 	updateMatch: (body, callback) => {
-		Match.findOne({ _id: body.match_id }, (err, match) => {
-			if (err) throw err;
-			match.start_at = body.start_at;
-			match.save(err => { if (err) throw err })
-		});
+		if (body.start_at) {
+			Match.findOne({ _id: body.match_id }, (err, match) => {
+				if (err) throw err;
+				match.start_at = body.start_at;
+				match.save(err => { if (err) throw err })
+			});
+		}
 		Score.find({ match_id: body.match_id }, (err, scores) => {
 			if (err) throw err;
-			scores.map((score, i) => {
+			scores.map(async score => {
 				// score.tournament_team_id = null;
 				// score.score = null;
 				// score.home = !i;
 				score.score = score.home ? body.scorePrediction[0] : body.scorePrediction[1];
 				score.winner = score.home ? body.winners[0] : body.winners[1];
-				score.save(err => {
+				await score.save(err => {
 					if (err) throw err;
 				});
 			});

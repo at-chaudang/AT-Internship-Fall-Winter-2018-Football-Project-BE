@@ -72,9 +72,13 @@ module.exports = {
             if (err) throw err;
             Score.find({ match_id: match.id }, (err, scores) => {
               if (err) throw err;
-
-              scores[index].tournament_team_id = x.tournamentTeamId._id;
-              scores[index].save(err => { if (err) throw err; });
+              // Check position left right of team in match
+              scores.map((score, i) => {
+                if (score.home == !index) {
+                score.tournament_team_id = x.tournamentTeamId._id;                  
+                score.save(err => { if (err) throw err; });
+                }
+              })
               if (index) {
                 callback(null, 200);
               }
