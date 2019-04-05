@@ -105,8 +105,8 @@ module.exports = {
 							tournament_team_id: pair[j],
 							home: !j,
 							winner: null,
-							score: null,
-							// score: 1
+							// score: null,
+							score: 1
 						});
 						score.save(err => {
 							if (err) throw err;
@@ -222,65 +222,70 @@ module.exports = {
 				})
 			.then(
 				async scores => {
-					let tournamentName = scores[0].match_id.tournamentId.name;
+					if (!scores.length) return;
+					let tournamentName = scores[0].match_id.tournamentId.name || '';
 					let result = [];
 					let scoresLength = scores.length;
-					// Sort by round
-					scores.sort(
-						(a, b) => (a.match_id.round > b.match_id.round)
-					)
 					let tablesFlags = utilities.checkSetKnockOut(scores);
 					let isSetMatchesResult = await utilities.setMatchesResult(scores);
-					if (isSetMatchesResult && isSetMatchesResult.err) {
-						console.log('error');
-					} else {
+					let newScores = await Match.find({ tournamentId: tournamentId })
+						.then(
+							matches => {
+								test = 1;
+								let matchesIds = matches.map(match => match._id);
+								return Score.find({ match_id: { $in: matchesIds } })
+									.populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id tournamentId' } });
+							})
+						if (isSetMatchesResult && isSetMatchesResult.err) {
+							console.log('error');
+						} else {
 						for (let i = 0; i < scoresLength; i++) {
 							for (let j = i + 1; j < scoresLength; j++) {
-								if (scores[i].match_id._id === scores[j].match_id._id) {
-									Prediction.find({ match_id: scores[i].match_id._id }, (err, prediction) => {
+								if (newScores[i].match_id._id === newScores[j].match_id._id) {
+									Prediction.find({ match_id: newScores[i].match_id._id }, (err, prediction) => {
 										if (err) throw err;
 										result.push({
-											id: scores[i].match_id._id,
-											round: scores[i].match_id.round,
-											group: scores[i].tournament_team_id ? scores[i].tournament_team_id.groupName : null,
-											start_at: scores[i].match_id.start_at,
-											isKnockoutSet: scores[i].tournament_team_id ? scores[i].tournament_team_id.isKnockoutSet : false,
-											firstTeam: scores[i].home ? {
-												firstTournamentTeamId: scores[i].tournament_team_id ? scores[i].tournament_team_id._id : null,
-												firstTeamId: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id._id : '',
-												code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
-												logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
-												score: scores[i].score,
-												winners: scores[i].winner,
+											id: newScores[i].match_id._id,
+											round: newScores[i].match_id.round,
+											group: newScores[i].tournament_team_id ? newScores[i].tournament_team_id.groupName : null,
+											start_at: newScores[i].match_id.start_at,
+											isKnockoutSet: newScores[i].tournament_team_id ? newScores[i].tournament_team_id.isKnockoutSet : false,
+											firstTeam: newScores[i].home ? {
+												firstTournamentTeamId: newScores[i].tournament_team_id ? newScores[i].tournament_team_id._id : null,
+												firstTeamId: newScores[i].tournament_team_id ? newScores[i].tournament_team_id.team_id._id : '',
+												code: newScores[i].tournament_team_id ? newScores[i].tournament_team_id.team_id.code : null,
+												logo: newScores[i].tournament_team_id ? `../../../assets/images/${newScores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
+												score: newScores[i].score,
+												winners: newScores[i].winner,
 												home: true
 											} : {
-													firstTournamentTeamId: scores[j].tournament_team_id ? scores[j].tournament_team_id._id : null,
-													firstTeamId: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id._id : '',
-													code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
-													logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
-													score: scores[j].score,
-													winners: scores[j].winner,
-													home: false
-												},
-											secondTeam: scores[i].home ? {
-												secondTournamentTeamId: scores[j].tournament_team_id ? scores[j].tournament_team_id._id : null,
-												secondTeamId: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id._id : '',
-												code: scores[j].tournament_team_id ? scores[j].tournament_team_id.team_id.code : null,
-												logo: scores[j].tournament_team_id ? `../../../assets/images/${scores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
-												score: scores[j].score,
-												winners: scores[j].winner,
-												home: false
-											} : {
-													secondTournamentTeamId: scores[i].tournament_team_id ? scores[i].tournament_team_id._id : null,
-													secondTeamId: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id._id : '',
-													code: scores[i].tournament_team_id ? scores[i].tournament_team_id.team_id.code : null,
-													logo: scores[i].tournament_team_id ? `../../../assets/images/${scores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
-													score: scores[i].score,
-													winners: scores[i].winner,
+													firstTournamentTeamId: newScores[j].tournament_team_id ? newScores[j].tournament_team_id._id : null,
+													firstTeamId: newScores[j].tournament_team_id ? newScores[j].tournament_team_id.team_id._id : '',
+													code: newScores[j].tournament_team_id ? newScores[j].tournament_team_id.team_id.code : null,
+													logo: newScores[j].tournament_team_id ? `../../../assets/images/${newScores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
+													score: newScores[j].score,
+													winners: newScores[j].winner,
 													home: true
 												},
+											secondTeam: newScores[i].home ? {
+												secondTournamentTeamId: newScores[j].tournament_team_id ? newScores[j].tournament_team_id._id : null,
+												secondTeamId: newScores[j].tournament_team_id ? newScores[j].tournament_team_id.team_id._id : '',
+												code: newScores[j].tournament_team_id ? newScores[j].tournament_team_id.team_id.code : null,
+												logo: newScores[j].tournament_team_id ? `../../../assets/images/${newScores[j].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
+												score: newScores[j].score,
+												winners: newScores[j].winner,
+												home: false
+											} : {
+													secondTournamentTeamId: newScores[i].tournament_team_id ? newScores[i].tournament_team_id._id : null,
+													secondTeamId: newScores[i].tournament_team_id ? newScores[i].tournament_team_id.team_id._id : '',
+													code: newScores[i].tournament_team_id ? newScores[i].tournament_team_id.team_id.code : null,
+													logo: newScores[i].tournament_team_id ? `../../../assets/images/${newScores[i].tournament_team_id.team_id.logo}` : '../../../assets/images/default-image.png',
+													score: newScores[i].score,
+													winners: newScores[i].winner,
+													home: false
+												},
 											prediction: {
-												isAllow: (new Date(scores[i].match_id.start_at).getTime() < Date.now()) ? true : false,
+												isAllow: (new Date(newScores[i].match_id.start_at).getTime() < Date.now()) ? true : false,
 												is_predicted: prediction.length ? true : false,
 												firstTeam_score_prediction: prediction.length ? prediction[0].score_prediction : '',
 												secondTeam_score_prediction: prediction.length ? prediction[1].score_prediction : '',
@@ -432,23 +437,24 @@ module.exports = {
 				}
 			)
 	},
-	updateMatch: (body, callback) => {
+	updateMatch: async (body, callback) => {
 		if (body.start_at) {
-			Match.findOne({ _id: body.match_id }, (err, match) => {
+			await Match.findOne({ _id: body.match_id }, (err, match) => {
 				if (err) throw err;
 				match.start_at = body.start_at;
 				match.save(err => { if (err) throw err })
 			});
 		}
-		Score.find({ match_id: body.match_id }, (err, scores) => {
+
+		await Score.find({ match_id: body.match_id }, (err, scores) => {
 			if (err) throw err;
-			scores.map(async score => {
+			scores.map(score => {
 				// score.tournament_team_id = null;
 				// score.score = null;
 				// score.home = !i;
 				score.score = score.home ? body.scorePrediction[0] : body.scorePrediction[1];
 				score.winner = score.home ? body.winners[0] : body.winners[1];
-				await score.save(err => {
+				score.save(err => {
 					if (err) throw err;
 				});
 			});

@@ -20,11 +20,16 @@ module.exports = function (scores, groupName) {
     let scoresByQuaterFinal = sortByGroup(scoresOfAllQuaterFinal, false);
     scoresByQuaterFinal.map((_scoresEachGroup) => {
       let teamsInformation = getTopTeams(_scoresEachGroup, 1);
-
+      // sort by home and round
+      // because fix bug position, change score.!!!
+      scoresOfAllSemiFinal.sort(
+        (a, b) => {
+          return (a.match_id.round - b.match_id.round) || (b.home - a.home)
+        }
+      )
       teamsInformation.map(teamInformation => {
         let indexsRunnings = indexsRunning[indexRun++];
-
-        // Save score by home
+        // To save by home
         scoresOfAllSemiFinal[indexsRunnings].home = !(indexsRunnings % 2);
         //-------------------chau
 
@@ -34,29 +39,41 @@ module.exports = function (scores, groupName) {
       })
     });
     console.log(1);
-
     return true;
   } else if (!_unSetSemiFinal.length && _unSetFinal.length) {
     // } else if (1) {
-
     let scoresBySemiFinal = sortByGroup(scoresOfAllSemiFinal);
-    scoresBySemiFinal.map((_scoresEachGroup, index) => {
+    // sort by home and round
+    // because fix bug position, change score.!!!
+    scoresOfAllFinal.sort(
+      (a, b) => {
+        return (a.match_id.round - b.match_id.round) || (b.home - a.home)
+      }
+    )
+    scoresBySemiFinal.map(async (_scoresEachGroup, index) => {
       // Save score by home
+      // Set home return true false as position: left right
       scoresOfAllFinal[index].home = !(index % 2);
       //-------------------chau
 
       let teamInformation = getTopTeams(_scoresEachGroup, 2)[0];
       let score = new Score(scoresOfAllFinal[index]);
       score.tournament_team_id = teamInformation.tournamentTeamId;
-      score.save(err => { if (err) throw err });
+      await score.save(err => { if (err) throw err });
     })
     console.log(2);
-
     return true;
   } else
     // Nếu các trận bán kết (với 32 đội) đã được set thì bắt đầu set chung kết.
     if (!_unSetFinal.length) {
       // if (1) {
+      // sort by home and round
+      // because fix bug position, change score.
+      scoresOfAllFinal32.sort(
+        (a, b) => {
+          return (a.match_id.round - b.match_id.round) || (b.home - a.home)
+        }
+      )
       let scoresByFinal = sortByGroup(scoresOfAllFinal);
       scoresByFinal.map((_scoresEachGroup, index) => {
         // Save score by home
@@ -68,10 +85,8 @@ module.exports = function (scores, groupName) {
         score.save(err => { if (err) throw err });
       })
       console.log(3);
-
       return true;
     }
-
 
   // Nếu các trận vòng bảng đã được set thì bắt đầu set tứ kết hay knockout (với 32 đội)
   // let unSetAllKnockOut = scores.filter(score => (score.score === null && score.match_id.round === 1));
@@ -90,6 +105,5 @@ module.exports = function (scores, groupName) {
   //     })
   //   });
   // }
-
 }
 
