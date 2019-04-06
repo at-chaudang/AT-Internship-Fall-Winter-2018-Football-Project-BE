@@ -195,6 +195,7 @@ module.exports = {
 				})
 			.then(
 				scores => {
+					if (!scores.length) return;
 					let { scoresOfAllTables } = utilities.sortKindOfMatches(scores);
 					let scoresByGroupName = utilities.sortByGroup(scoresOfAllTables, false);
 					let responsingData = [];

@@ -31,7 +31,7 @@ module.exports = function (scores, groupName) {
         let indexsRunnings = indexsRunning[indexRun++];
         // To save by home
         scoresOfAllSemiFinal[indexsRunnings].home = !(indexsRunnings % 2);
-        //-------------------chau
+        //-------------------c
 
         let score = new Score(scoresOfAllSemiFinal[indexsRunnings]);
         score.tournament_team_id = teamInformation.tournamentTeamId;
