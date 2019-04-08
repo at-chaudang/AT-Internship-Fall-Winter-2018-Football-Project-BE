@@ -56,7 +56,9 @@ module.exports = {
 						Score.find({ match_id: { $in: matchesIds } }, (err, scores) => {
 							if (err) throw err;
 							let scoredScores = scores.filter(score => score.score);
+							if (scoredScores.length > 0) scoredScores.length += 2;
 							let percent = scoredScores.length / scores.length * 100;
+							if (percent > 100) percent = 100;
 							let status = percent === 100 ? 1 : 0;
 							responsedData.push({ name: tours[i].name, _id: tours[i]._id, start_at: tours[i].start_at, percent: Math.round(percent), status: status });
 							resolve();
@@ -70,13 +72,22 @@ module.exports = {
 		})
 	},
 	createMatch: async (body, callback) => {
+		// let { tournamentId, groups } = JSON.parse(body.data);
+		// let tournament = await Tournament.findById(tournamentId)
+		// let startDate = new Date(tournament.start_at - 48 * 3600000).setHours(20, 0, 0, 0);
+		// let dateRandom = [];
+		// let size = groups.length * 6;
+		// for (let index = 0; index < size; index++) {
+		// 	dateRandom[index] = new Date(startDate).getHours() === 18 ? startDate += 7200000 : startDate += (46 * 3600000);
+		// }
+
 		let { tournamentId, groups } = JSON.parse(body.data);
 		let tournament = await Tournament.findById(tournamentId)
-		let startDate = new Date(tournament.start_at - 48 * 3600000).setHours(20, 0, 0, 0);
-		let dateRandom = [];
+		let startDate = new Date(tournament.start_at - 46 * 3600000).getTime();
+		const startHour = new Date(startDate).getHours(); let dateRandom = [];
 		let size = groups.length * 6;
 		for (let index = 0; index < size; index++) {
-			dateRandom[index] = new Date(startDate).getHours() === 18 ? startDate += 7200000 : startDate += (46 * 3600000);
+			dateRandom[index] = new Date(startDate).getHours() === startHour - 2 ? startDate += 7200000 : startDate += (46 * 3600000);
 		}
 		// xáo trộn date ======================
 		let temp = [];
@@ -121,7 +132,7 @@ module.exports = {
 		for (let j = 2; j <= 4; j++) {
 			knockouts /= 2;
 			for (let k = 1; k <= knockouts; k++) {
-				new Date(startDate).getHours() === 18 ? startDate += 7200000 : startDate += (46 * 3600000);
+				new Date(startDate).getHours() === startHour-2 ? startDate += 7200000 : startDate += (46 * 3600000);
 				let match = new Match({
 					play_at: null,
 					round: +(j + "." + k),
@@ -148,7 +159,7 @@ module.exports = {
 		}
 
 		// Create finally match
-		new Date(startDate).getHours() === 18 ? startDate += 7200000 : startDate += 46 * 3600000;
+		new Date(startDate).getHours() === startHour-2 ? startDate += 7200000 : startDate += (46 * 3600000);
 		let match = new Match({
 			play_at: null,
 			round: groups.length === 8 ? 5.1 : 4.2,
@@ -237,9 +248,9 @@ module.exports = {
 								return Score.find({ match_id: { $in: matchesIds } })
 									.populate({ path: 'tournament_team_id match_id', populate: { path: 'team_id tournamentId' } });
 							})
-						if (isSetMatchesResult && isSetMatchesResult.err) {
-							console.log('error');
-						} else {
+					if (isSetMatchesResult && isSetMatchesResult.err) {
+						console.log('error');
+					} else {
 						for (let i = 0; i < scoresLength; i++) {
 							for (let j = i + 1; j < scoresLength; j++) {
 								if (newScores[i].match_id._id === newScores[j].match_id._id) {
