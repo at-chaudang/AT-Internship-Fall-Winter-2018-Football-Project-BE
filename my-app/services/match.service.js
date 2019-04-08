@@ -105,8 +105,8 @@ module.exports = {
 							tournament_team_id: pair[j],
 							home: !j,
 							winner: null,
-							// score: null,
-							score: 1
+							score: null,
+							// score: 1
 						});
 						score.save(err => {
 							if (err) throw err;
